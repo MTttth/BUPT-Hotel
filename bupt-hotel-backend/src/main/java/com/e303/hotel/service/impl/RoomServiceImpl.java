@@ -3,16 +3,16 @@ package com.e303.hotel.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.e303.hotel.bean.Result;
 import com.e303.hotel.bean.Room;
-import com.e303.hotel.dto.AdjustTemp;
-import com.e303.hotel.dto.ClientLoginRequest;
-import com.e303.hotel.dto.PowerOffRequest;
-import com.e303.hotel.dto.PowerOnRequest;
+import com.e303.hotel.dto.*;
 import com.e303.hotel.mapper.RoomMapper;
 import com.e303.hotel.service.RoomService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Service
 public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements RoomService {
@@ -47,11 +47,12 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         Room room = getById(powerOnRequest.getRoomId());
         if (room == null) {
             return Result.error("400", "房间不存在");
-        } else if (room.getStatus() != 0) {
-            return Result.error("400", "该房间空调已开启");
-        } else if (room.getRoomStatus() != 1) {
-            return Result.error("400", "该房间未登记入住，请先去前台登记入住该房间");
         }
+        //else if (room.getStatus() != 0) {
+        //    return Result.error("400", "该房间空调已开启");
+        //} else if (room.getRoomStatus() != 1) {
+        //    return Result.error("400", "该房间未登记入住，请先去前台登记入住该房间");
+        //}
         // 设置目标值和当前风速
         float currentTemp = room.getCurrentTemp();
         room.setTargetTemp(powerOnRequest.getTargetTemp());
@@ -85,20 +86,53 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
     }
 
     @Override
-    public Result adjustTemperature(AdjustTemp adjustTemp) {
-        Integer roomId = adjustTemp.getRoomId();
-        float targetTemp = adjustTemp.getTargetTemp();
+    public Result adjustTemperature(AdjustTempRequest adjustTempRequest) {
+        Integer roomId = adjustTempRequest.getRoomId();
+        float targetTemp = adjustTempRequest.getTargetTemp();
         Room room = getById(roomId);
         if(room==null){
             return Result.error("400","房间不存在");
-        }else if(room.getStatus()==0){
-            return Result.error("400","房间空调未开启，请先开启空调");
-        }else if(room.getRoomStatus()==0){
-            return Result.error("400","房间未登记入住，请先登记入住");
         }
+        //else if(room.getStatus()==0){
+        //    return Result.error("400","房间空调未开启，请先开启空调");
+        //}else if(room.getRoomStatus()==0){
+        //    return Result.error("400","房间未登记入住，请先登记入住");
+        //}
         room.setTargetTemp(targetTemp);
         updateById(room);
-        return Result.success("目标风速成功修改为:"+targetTemp);
+        return Result.success("目标温度成功修改为:"+targetTemp);
+    }
+
+    @Override
+    public Result adjustWind(AdjustWindRequest adjustWindRequest) {
+        Integer roomId = adjustWindRequest.getRoomId();
+        String targetSpeed = adjustWindRequest.getTargetSpeed().toLowerCase();
+        Room room = getById(roomId);
+        if(room==null){
+            return Result.error("400","房间不存在");
+        }
+        //else if(room.getStatus()==0){
+        //    return Result.error("400","房间空调未开启，请先开启空调");
+        //}else if(room.getRoomStatus()==0){
+        //    return Result.error("400","房间未登记入住，请先登记入住");
+        //}
+        room.setTargetSpeed(targetSpeed);
+        room.setCurrentSpeed(targetSpeed);
+        updateById(room);
+        return Result.success("目标风速成功修改为:"+targetSpeed);
+    }
+
+    @Override
+    public Result getAllRoomDetaisList() {
+        List<Room> roomList = this.list();
+        Result success = Result.success("查询成功");
+        List<RoomDTO> rooms = roomList.stream()
+                .map(RoomDTO::new) // 转 DTO，隐藏 password
+                .collect(Collectors.toList());
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("rooms", rooms);
+        success.setData(dataMap);
+        return success;
     }
 
     /**
@@ -141,6 +175,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
             if (finished) {
                 System.out.println("房间 " + roomId + " 达到目标温度，停止调节。");
                 room.setCurrentSpeed("stop");
+                room.setStatus(0);
                 updateById(room);
 
                 //结束线程调度

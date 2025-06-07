@@ -2,18 +2,13 @@ package com.e303.hotel.controller;
 
 import com.e303.hotel.bean.Result;
 import com.e303.hotel.bean.Room;
-import com.e303.hotel.dto.AdjustTemp;
-import com.e303.hotel.dto.ClientLoginRequest;
-import com.e303.hotel.dto.PowerOffRequest;
-import com.e303.hotel.dto.PowerOnRequest;
+import com.e303.hotel.dto.*;
 import com.e303.hotel.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import java.util.Map;
 
 @Controller
 public class ClientController {
@@ -43,8 +38,14 @@ public class ClientController {
 
     @ResponseBody
     @PostMapping(value = "/adjust_temperature")
-    public Result adjustTemperature(@RequestBody AdjustTemp adjustTemp) {
-        return roomService.adjustTemperature(adjustTemp);
+    public Result adjustTemperature(@RequestBody AdjustTempRequest adjustTempRequest) {
+        return roomService.adjustTemperature(adjustTempRequest);
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/adjust_wind")
+    public Result adjustWind(@RequestBody AdjustWindRequest adjustWindRequest) {
+        return roomService.adjustWind(adjustWindRequest);
     }
 
     @ResponseBody

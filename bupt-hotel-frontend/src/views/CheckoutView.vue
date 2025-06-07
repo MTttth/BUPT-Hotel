@@ -9,42 +9,17 @@
       </div>
 
       <!-- 数据表格 -->
-      <el-table
-        :data="occupiedRooms"
-        stripe
-        border
-        highlight-current-row
-        style="width: 100%;"
-        class="checkout-table"
-      >
-        <el-table-column
-          prop="id"
-          label="房间号"
-          width="120"
-          align="center"
-        />
-        <el-table-column
-          prop="guest"
-          label="客人"
-          align="center"
-        />
-        <el-table-column
-          prop="cost"
-          label="费用（￥）"
-          align="center"
-        >
+      <el-table :data="occupiedRooms" stripe border highlight-current-row style="width: 100%;" class="checkout-table">
+        <el-table-column prop="id" label="房间号" width="120" align="center" />
+        <el-table-column prop="guest" label="客人" align="center" />
+        <el-table-column prop="cost" label="费用（￥）" align="center">
           <template #default="{ row }">
             <el-tag type="warning" size="small">￥{{ Number(row.cost).toFixed(2) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="160" align="center">
           <template #default="{ row }">
-            <el-button
-              size="mini"
-              type="danger"
-              round
-              @click="confirmCheckout(row)"
-            >
+            <el-button size="mini" type="danger" round @click="confirmCheckout(row)">
               <i class="el-icon-price-tag"></i> 结账
             </el-button>
           </template>
@@ -171,6 +146,7 @@ function doCheckout(id: number) {
     opacity: 0;
     transform: translateY(-12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
