@@ -18,7 +18,7 @@ export const useRoomsStore = defineStore('rooms', () => {
     for (let i = 1; i <= count; i++) {
       rooms.push({
         id: i,
-        occupied: false,
+        occupied: true,
         guest: null,
         mode: 'cool',
         targetTemp: 25,

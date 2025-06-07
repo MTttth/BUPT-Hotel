@@ -11,37 +11,17 @@
       <!-- 入住表单 -->
       <el-form ref="formRef" class="checkin-form" @submit.prevent>
         <el-form-item label="房间号" class="form-item">
-          <el-select
-            v-model="roomId"
-            placeholder="请选择空闲房间"
-            clearable
-            filterable
-          >
-            <el-option
-              v-for="r in emptyRooms"
-              :key="r.id"
-              :label="`房间 #${r.id}`"
-              :value="r.id"
-            />
+          <el-select v-model="roomId" placeholder="请选择空闲房间" clearable filterable>
+            <el-option v-for="r in emptyRooms" :key="r.id" :label="`房间 #${r.id}`" :value="r.id" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="客人姓名" class="form-item">
-          <el-input
-            v-model="guest"
-            placeholder="请输入客人姓名"
-            prefix-icon="el-icon-user"
-            clearable
-          />
+          <el-input v-model="guest" placeholder="请输入客人姓名" prefix-icon="el-icon-user" clearable />
         </el-form-item>
 
         <el-form-item class="form-item form-button">
-          <el-button
-            type="primary"
-            size="large"
-            round
-            @click="submit"
-          >
+          <el-button type="primary" size="large" round @click="submit">
             确认入住
           </el-button>
         </el-form-item>
@@ -84,7 +64,8 @@ function submit() {
   align-items: center;
   padding-top: 40px;
   background-color: #f5f7fa;
-  min-height: calc(100vh - 64px - 40px); /* 考虑到头部高度和内边距 */
+  min-height: calc(100vh - 64px - 40px);
+  /* 考虑到头部高度和内边距 */
 }
 
 .checkin-card {
@@ -153,6 +134,7 @@ function submit() {
     opacity: 0;
     transform: translateY(-12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

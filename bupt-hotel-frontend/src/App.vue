@@ -7,13 +7,8 @@
         <span class="app-title">中央空调管理系统</span>
       </div>
 
-      <el-menu
-        :default-active="$route.path"
-        mode="horizontal"
-        router
-        class="nav-menu"
-      >
-        <el-menu-item index="/">
+      <el-menu :default-active="$route.path" mode="horizontal" router class="nav-menu">
+        <el-menu-item index="/controlpanel">
           <i class="el-icon-s-tools"></i>
           控制面板
         </el-menu-item>
@@ -28,6 +23,10 @@
         <el-menu-item index="/monitor">
           <i class="el-icon-monitor"></i>
           监控
+        </el-menu-item>
+        <el-menu-item index="/room">
+          <i class="el-icon-monitor"></i>
+          房间
         </el-menu-item>
       </el-menu>
     </el-header>
@@ -67,10 +66,12 @@
   display: flex;
   align-items: center;
 }
+
 .logo {
   height: 36px;
   margin-right: 12px;
 }
+
 .app-title {
   font-size: 20px;
   font-weight: 600;
@@ -80,24 +81,33 @@
 
 /* 导航菜单 区域 */
 .nav-menu {
-  flex: 1;               /* 让菜单拉伸占满中间剩余空间 */
-  background: transparent; 
-  border-bottom: none;   /* 去掉默认下边框 */
-  margin-left: 40px;     /* 左侧留白，让 Logo 区更突出 */
+  flex: 1;
+  /* 让菜单拉伸占满中间剩余空间 */
+  background: transparent;
+  border-bottom: none;
+  /* 去掉默认下边框 */
+  margin-left: 40px;
+  /* 左侧留白，让 Logo 区更突出 */
 }
 
 .nav-menu .el-menu-item {
   padding: 0 20px !important;
-  color: #e0e6ed;        /* 菜单字体偏亮 */
+  color: #e0e6ed;
+  /* 菜单字体偏亮 */
   font-size: 16px;
   transition: color 0.2s;
 }
+
 .nav-menu .el-menu-item:hover {
-  color: #ffd04b;        /* 滑过时黄色高亮 */
+  color: #ffd04b;
+  /* 滑过时黄色高亮 */
 }
+
 .nav-menu .el-menu-item.is-active {
-  color: #ffd04b;        /* 激活路由时黄色高亮 */
-  border-bottom: 3px solid #ffd04b; /* 底部小黄线 */
+  color: #ffd04b;
+  /* 激活路由时黄色高亮 */
+  border-bottom: 3px solid #ffd04b;
+  /* 底部小黄线 */
 }
 
 /* 右侧用户菜单 区域 */
@@ -105,10 +115,12 @@
   display: flex;
   align-items: center;
 }
+
 .drop-trigger {
   color: #e0e6ed;
   user-select: none;
 }
+
 .user-name {
   margin: 0 6px;
   font-size: 15px;
