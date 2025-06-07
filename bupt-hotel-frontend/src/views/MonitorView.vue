@@ -9,26 +9,10 @@
       </div>
 
       <!-- 表格区域 -->
-      <el-table
-        v-if="rooms && rooms.length"
-        :data="rooms"
-        stripe
-        border
-        highlight-current-row
-        style="width: 100%;"
-        class="monitor-table"
-      >
-        <el-table-column
-          prop="id"
-          label="房间号"
-          width="100"
-          align="center"
-        />
-        <el-table-column
-          prop="guest"
-          label="客人"
-          align="center"
-        >
+      <el-table v-if="rooms && rooms.length" :data="rooms" stripe border highlight-current-row style="width: 100%;"
+        class="monitor-table">
+        <el-table-column prop="id" label="房间号" width="100" align="center" />
+        <el-table-column prop="guest" label="客人" align="center">
           <template #default="{ row }">
             <span v-if="row.guest">{{ row.guest }}</span>
             <span v-else>
@@ -36,85 +20,40 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="currentTemp"
-          label="当前温度 (℃)"
-          width="140"
-          align="center"
-        >
+        <el-table-column prop="currentTemp" label="当前温度 (℃)" width="140" align="center">
           <template #default="{ row }">
             <span class="temp-text">{{ row.currentTemp.toFixed(1) }}</span>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="targetTemp"
-          label="目标温度 (℃)"
-          width="140"
-          align="center"
-        >
+        <el-table-column prop="targetTemp" label="目标温度 (℃)" width="140" align="center">
           <template #default="{ row }">
             <span class="temp-text">{{ row.targetTemp }}</span>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="wind"
-          label="风速"
-          width="120"
-          align="center"
-        >
+        <el-table-column prop="wind" label="风速" width="120" align="center">
           <template #default="{ row }">
-            <el-tag
-              v-if="row.wind === 'low'"
-              type="info"
-              size="mini"
-            >
+            <el-tag v-if="row.wind === 'low'" type="info" size="mini">
               低风
             </el-tag>
-            <el-tag
-              v-else-if="row.wind === 'medium'"
-              type="primary"
-              size="mini"
-            >
+            <el-tag v-else-if="row.wind === 'medium'" type="primary" size="mini">
               中风
             </el-tag>
-            <el-tag
-              v-else
-              type="success"
-              size="mini"
-            >
+            <el-tag v-else type="success" size="mini">
               高风
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="cost"
-          label="累计费用 (￥)"
-          width="140"
-          align="center"
-        >
+        <el-table-column prop="cost" label="累计费用 (￥)" width="140" align="center">
           <template #default="{ row }">
             <el-tag type="warning" size="mini">￥{{ row.cost.toFixed(2) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="running"
-          label="送风中"
-          width="120"
-          align="center"
-        >
+        <el-table-column prop="running" label="送风中" width="120" align="center">
           <template #default="{ row }">
-            <el-tag
-              v-if="row.running"
-              type="warning"
-              size="mini"
-            >
+            <el-tag v-if="row.running" type="warning" size="mini">
               是
             </el-tag>
-            <el-tag
-              v-else
-              type="success"
-              size="mini"
-            >
+            <el-tag v-else type="success" size="mini">
               否
             </el-tag>
           </template>
@@ -200,6 +139,7 @@ const { rooms } = useRoomsStore();
     opacity: 0;
     transform: translateY(-12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
