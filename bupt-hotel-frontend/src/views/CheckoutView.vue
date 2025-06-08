@@ -8,13 +8,15 @@
         <span class="checkout-title">客户结账</span>
       </div>
 
-      <!-- 数据表格 -->
+      <!-- 入住房间列表 -->
       <el-table :data="occupiedRooms" stripe border highlight-current-row style="width: 100%;" class="checkout-table">
         <el-table-column prop="id" label="房间号" width="120" align="center" />
         <el-table-column prop="guest" label="客人" align="center" />
-        <el-table-column prop="cost" label="费用（￥）" align="center">
+        <el-table-column prop="cost" label="当前费用（￥）" align="center">
           <template #default="{ row }">
-            <el-tag type="warning" size="small">￥{{ Number(row.cost).toFixed(2) }}</el-tag>
+            <el-tag type="warning" size="small">
+              ￥{{ Number(row.cost).toFixed(2) }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="160" align="center">
@@ -26,22 +28,43 @@
         </el-table-column>
       </el-table>
 
-      <!-- 如果没有已入住的房间，显示空状态 -->
+      <!-- 空状态 -->
       <div v-if="occupiedRooms.length === 0" class="empty-state">
         <el-empty description="暂无已入住房间" />
       </div>
     </el-card>
+
+    <!-- 账单明细对话框 -->
+    <el-dialog title="账单明细" :visible.sync="detailDialogVisible" width="600px" @close="resetDialog">
+      <div class="detail-summary">
+        <strong>总费用：</strong>￥{{ billAmount.toFixed(2) }}
+      </div>
+      <el-table :data="detailedList" stripe style="width: 100%;">
+        <el-table-column prop="start_time" label="开始时间" width="180" />
+        <el-table-column prop="end_time" label="结束时间" width="180" />
+        <el-table-column prop="fee" label="费用 (￥)" width="100" align="right" />
+      </el-table>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="detailDialogVisible = false">关闭</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import axios from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRoomsStore } from '@/stores/useRoomsStore';
 import type { Room } from '@/types/Room';
 
 const store = useRoomsStore();
 const occupiedRooms = computed<Room[]>(() => store.rooms.filter(r => r.occupied));
+
+// Dialog state
+const detailDialogVisible = ref(false);
+const billAmount = ref(0);
+const detailedList = ref<Array<{ start_time: string; end_time: string; fee: number }>>([]);
 
 /**
  * 弹出确认框后执行结账
@@ -55,33 +78,44 @@ function confirmCheckout(room: Room) {
       cancelButtonText: '取消',
       type: 'warning',
     }
-  ).then(() => {
-    doCheckout(room.id);
-  }).catch(() => {
-    /* 用户取消 */
-  });
+  )
+    .then(() => {
+      doCheckout(room.id);
+    })
+    .catch(() => {
+      // 用户取消
+    });
 }
 
 /**
- * 真正执行结账流程
+ * 真正执行结账流程：调用后端 POST /check_out
  */
-function doCheckout(id: number) {
+async function doCheckout(id: number) {
   try {
-    const bill = store.checkout(id);
-    ElMessage({
-      type: 'success',
-      message: `房间 #${bill.room} 的客人 ${bill.guest} 已结账，费用 ￥${bill.cost}`,
-      center: true,
-      duration: 3000,
-    });
-  } catch (error: any) {
-    ElMessage({
-      type: 'error',
-      message: error.message || '结账失败',
-      center: true,
-      duration: 3000,
-    });
+    const res = await axios.post('/check_out', { room_id: id });
+    if (res.data.code === 200 && res.data.data) {
+      // 后端返回账单明细
+      billAmount.value = res.data.data.bill;
+      detailedList.value = res.data.data.detailed_list;
+      // 更新本地状态
+      store.checkout(id);
+      // 打开明细对话框
+      detailDialogVisible.value = true;
+      ElMessage.success('结账成功');
+    } else {
+      ElMessage.error(res.data.msg || '结账失败');
+    }
+  } catch (err: any) {
+    ElMessage.error(err.response?.data?.msg || '网络或服务器错误');
   }
+}
+
+/**
+ * 关闭对话框时重置数据
+ */
+function resetDialog() {
+  billAmount.value = 0;
+  detailedList.value = [];
 }
 </script>
 
@@ -91,8 +125,8 @@ function doCheckout(id: number) {
   background-color: #f5f7fa;
   min-height: calc(100vh - 64px);
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
 }
 
 .checkout-card {
@@ -136,9 +170,15 @@ function doCheckout(id: number) {
 
 .empty-state {
   margin-top: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+}
+
+.detail-summary {
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+
+.dialog-footer {
+  text-align: right;
 }
 
 @keyframes fadeIn {
