@@ -20,6 +20,6 @@ public class AdminController {
     @ResponseBody
     @PostMapping(value = "/get_room_detail_list")
     public Result getRoomDetailList(){
-        return roomService.getAllRoomDetaisList();
+        return roomService.getAllRoomDetialList();
     }
 }

@@ -3,6 +3,7 @@ package com.e303.hotel.controller;
 import com.e303.hotel.bean.Result;
 import com.e303.hotel.bean.Room;
 import com.e303.hotel.dto.*;
+import com.e303.hotel.service.CentralACService;
 import com.e303.hotel.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -10,42 +11,45 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.annotation.Resource;
+
 @Controller
 public class ClientController {
 
-    @Autowired
+    @Resource
     private RoomService roomService;
+    @Resource
+    private CentralACService centralACService;
 
     @ResponseBody
     @PostMapping(value = "/client_login")
     public Result clientLogin(@RequestBody ClientLoginRequest clientLoginRequest) {
         return roomService.clientLogin(clientLoginRequest);
-
     }
 
 
     @ResponseBody
     @PostMapping(value = "/power_on")
     public Result powerOn(@RequestBody PowerOnRequest powerOnRequest) {
-        return roomService.powerOn(powerOnRequest);
+        return centralACService.powerOn(powerOnRequest);
     }
 
     @ResponseBody
     @PostMapping(value = "/power_off")
     public Result powerOff(@RequestBody PowerOffRequest powerOffRequest) {
-        return roomService.powerOff(powerOffRequest);
+        return centralACService.powerOff(powerOffRequest);
     }
 
     @ResponseBody
     @PostMapping(value = "/adjust_temperature")
     public Result adjustTemperature(@RequestBody AdjustTempRequest adjustTempRequest) {
-        return roomService.adjustTemperature(adjustTempRequest);
+        return centralACService.adjustTemperature(adjustTempRequest);
     }
 
     @ResponseBody
     @PostMapping(value = "/adjust_wind")
     public Result adjustWind(@RequestBody AdjustWindRequest adjustWindRequest) {
-        return roomService.adjustWind(adjustWindRequest);
+        return centralACService.adjustWind(adjustWindRequest);
     }
 
     @ResponseBody

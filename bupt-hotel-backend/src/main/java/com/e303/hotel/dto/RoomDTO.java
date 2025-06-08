@@ -1,6 +1,7 @@
 package com.e303.hotel.dto;
 
 import com.e303.hotel.bean.Room;
+import com.e303.hotel.bean.enums.Speed;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,9 +14,9 @@ public class RoomDTO {
     private Integer roomStatus; // 0: 空闲, 1: 不空闲
     private Integer status;     // 0: 关闭, 1: 开启
     private float currentTemp;
-    private String currentSpeed; //"high" "mid" "slow" "stop"
+    private Speed currentSpeed; //"high" "mid" "slow" "stop"
     private float targetTemp;
-    private String targetSpeed;  // "high" "mid" "slow" "stop"
+    private Speed targetSpeed;  // "high" "mid" "slow" "stop"
     private float electricalUsage;
     private float fee;
     public RoomDTO(Room room) {
