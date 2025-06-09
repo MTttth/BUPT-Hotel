@@ -31,31 +31,76 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoomsStore } from '@/stores/useRoomsStore';
 import { ElMessage } from 'element-plus';
+import axios from 'axios';
 
 const store = useRoomsStore();
 const roomId = ref<number | null>(null);
 const guest = ref<string>('');
 
-const emptyRooms = computed(() => store.rooms.filter(r => !r.occupied));
+// 用来存后端拉回的空闲房间 ID 列表
+const emptyRoomIds = ref<number[]>([]);
 
-function submit() {
+// 计算真正可选的房间对象列表
+const emptyRooms = computed(() => {
+  // 如果你希望直接用 ID 数组，也可以只返回 emptyRoomIds.value
+  return store.rooms.filter(r => emptyRoomIds.value.includes(r.id));
+});
+
+async function fetchEmptyRooms() {
+  try {
+    const res = await axios.get('/get_emptyroom');
+    if (res.data.code === 200 && Array.isArray(res.data.data.empty_room_list)) {
+      emptyRoomIds.value = res.data.data.empty_room_list;
+    } else {
+      console.warn('拉取空房失败：', res.data.msg);
+    }
+  } catch (err: any) {
+    console.error('网络错误，获取空闲房间失败', err);
+  }
+}
+
+// 在组件挂载时马上拉一次，并启动定时器
+let timer: ReturnType<typeof setInterval>;
+onMounted(() => {
+  fetchEmptyRooms();
+  timer = setInterval(fetchEmptyRooms, 30 * 1000); // 每 30s 刷新一次
+});
+
+// 在卸载时清理定时器
+onBeforeUnmount(() => {
+  clearInterval(timer);
+});
+
+async function submit() {
   if (!roomId.value || !guest.value.trim()) {
     ElMessage.warning('请填写房间号和客人姓名');
     return;
   }
   try {
-    store.checkIn(roomId.value, guest.value.trim());
-    ElMessage.success(`房间 #${roomId.value} 已成功入住 ${guest.value.trim()}`);
-    roomId.value = null;
-    guest.value = '';
-  } catch (error: any) {
-    ElMessage.error(error.message || '操作失败');
+    const res = await axios.post('/check_in', {
+      room_id: roomId.value,
+    });
+    if (res.data.code === 200) {
+      ElMessage.success('Check in successfully');
+      // 本地 Store 同步
+      store.checkIn(roomId.value, guest.value.trim());
+      // 重置表单
+      roomId.value = null;
+      guest.value = '';
+      // 立即刷新一下空房列表，避免刚入住的房间仍出现在选项中
+      await fetchEmptyRooms();
+    } else {
+      ElMessage.error(res.data.msg || 'Check in failed');
+    }
+  } catch (err: any) {
+    ElMessage.error(err.response?.data?.msg || '网络错误，稍后重试');
   }
 }
 </script>
+
 
 <style scoped>
 .checkin-container {
