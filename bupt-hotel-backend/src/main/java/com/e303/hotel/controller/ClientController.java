@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Controller
 public class ClientController {
@@ -65,6 +66,14 @@ public class ClientController {
         success.setMsg("成功获取房间状态");
         success.setData(room);
         return success;
+    }
+    @ResponseBody
+    @PostMapping(value = "getAllRooms")
+    public void getAllRooms() {
+        List<Room> list = roomService.list();
+        for (Room room : list) {
+            System.out.println(room);
+        }
     }
 
 
