@@ -28,6 +28,10 @@
           <i class="el-icon-monitor"></i>
           房间
         </el-menu-item>
+        <el-menu-item index="/report">
+          <i class="el-icon-data-analysis"></i>
+          报表
+        </el-menu-item>
       </el-menu>
     </el-header>
 

@@ -5,6 +5,7 @@ import CheckIn from '@/views/CheckInView.vue'
 import Checkout from '@/views/CheckoutView.vue'
 import Monitor from '@/views/MonitorView.vue'
 import RoomAC from '@/views/RoomAC.vue'
+import ReportView from '@/views/ReportView.vue'
 
 const routes = [
   {
@@ -36,6 +37,11 @@ const routes = [
     name: 'RoomAC',
     component: RoomAC,
     props: true,   // 让路由参数自动作为组件 props
+  },
+  {
+    path: '/report',
+    name: 'Report',
+    component: ReportView,
   },
 ]
 
