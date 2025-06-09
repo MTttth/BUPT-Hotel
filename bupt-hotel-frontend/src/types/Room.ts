@@ -1,14 +1,29 @@
-export type Wind = 'low' | 'medium' | 'high';
-export type Mode = 'cool' | 'heat';
+// src/types/Room.ts
 
-export interface Room {
-  id: number;
-  occupied: boolean;
+export type Wind = 'slow' | 'mid' | 'high' | 'stop';
+
+/**
+ * 后端返回的房间监控详情
+ */
+export interface RoomDetail {
+  /** 房间号 */
+  roomId: number;
+  /** 客人姓名，空闲时为 null */
   guest: string | null;
-  mode: Mode;
-  targetTemp: number;
-  wind: Wind;
+  /** 当前温度 */
   currentTemp: number;
+  /** 目标温度 */
+  targetTemp: number;
+  /** 当前风速 */
+  currentSpeed: Wind;
+  /** 目标风速 */
+  targetSpeed: Wind;
+  /** 耗电量（度） */
+  electricalUsage: number;
+  /** 累计费用（元） */
   cost: number;
-  running: boolean;
+  /** 空调开关状态，true=开，false=关 */
+  status: boolean;
+  /** 房间占用状态，1=占用，0=空闲 */
+  roomStatus: number;
 }

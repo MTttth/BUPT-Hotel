@@ -35,8 +35,9 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoomsStore } from '@/stores/useRoomsStore';
 import { ElMessage } from 'element-plus';
 import axios from 'axios';
-
+import { useRouter } from 'vue-router';
 const store = useRoomsStore();
+const router = useRouter();
 const roomId = ref<number | null>(null);
 const guest = ref<string>('');
 
@@ -85,8 +86,7 @@ async function submit() {
     });
     if (res.data.code === 200) {
       ElMessage.success('Check in successfully');
-      // 本地 Store 同步
-      store.checkIn(roomId.value, guest.value.trim());
+      router.push({ name: 'RoomAC', params: { id: roomId.value } });
       // 重置表单
       roomId.value = null;
       guest.value = '';

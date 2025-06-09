@@ -32,9 +32,10 @@ const routes = [
     component: Monitor,
   },
   {
-    path: '/room',
+    path: '/room/:id(\\d+)?',
     name: 'RoomAC',
     component: RoomAC,
+    props: true,   // 让路由参数自动作为组件 props
   },
 ]
 

@@ -1,24 +1,25 @@
 <!-- src/views/RoomAC.vue -->
 <template>
   <div class="client-room-container">
-    <el-card v-if="myRoom" class="client-room-card" shadow="hover">
+    <el-card v-if="roomState" class="client-room-card" shadow="hover">
       <!-- 房间信息头 -->
       <div class="room-header">
         <i class="el-icon-house room-icon"></i>
-        <span class="room-title">房间 #{{ myRoom.id }}</span>
-        <el-tag type="success" size="small" class="room-tag">
-          已入住 • {{ myRoom.guest }}
+        <span class="room-title">房间 #{{ roomId }}</span>
+        <el-tag :type="roomState.status ? 'success' : 'info'" size="small" class="room-tag">
+          {{ roomState.status ? '空调已开启' : '空调已关闭' }}
         </el-tag>
       </div>
 
       <!-- RoomControl 组件 -->
       <div class="room-control-wrapper">
-        <RoomControl :room="myRoom" />
+        <RoomControl :room="apiRoom" />
       </div>
     </el-card>
 
+    <!-- 空状态：没获取到 roomState，就展示“去入住”按钮 -->
     <div v-else class="empty-state">
-      <el-empty description="您当前没有入住的房间" />
+      <el-empty description="尚未入住此房间" />
       <el-button type="primary" @click="goToCheckIn" class="empty-button">
         去入住
       </el-button>
@@ -27,23 +28,82 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from '@/stores/useAuthStore';
-import { useRoomsStore } from '@/stores/useRoomsStore';
-import RoomControl from '@/components/RoomControl.vue';
-import { computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
+import RoomControl from '@/components/RoomControl.vue'
+import type { Wind , RoomDetail } from '@/types/Room'
 
-const auth = useAuthStore();
-const store = useRoomsStore();
-const router = useRouter();
+const router = useRouter()
+const props = defineProps<{ id?: string }>()
 
-// 根据登录用户名查找对应房间
-const myRoom = computed(() => {
-  return store.rooms.find(r => r.id === auth.userRoomId) || null;
-});
+// 2. 转成数字
+const roomId = props.id ? Number(props.id) : NaN
 
+// 3. 如果 id 无效（NaN），直接跳去入住页
+if (isNaN(roomId)) {
+  router.replace({ name: 'CheckIn' })
+}
+
+// 保存后端心跳状态
+const roomState = ref<{
+  current_temp: number
+  target_temp: number
+  current_speed: Wind
+  target_speed: Wind
+  electrical_usage: number
+  fee: number
+  status: number
+} | null>(null)
+
+let timer: ReturnType<typeof setInterval>
+
+// 心跳接口：获取最新状态
+async function fetchStatus() {
+  try {
+    const res = await axios.post('/status_heartbeat', { room_id: roomId })
+    if (res.data.code === 200 && res.data.data) {
+      roomState.value = res.data.data
+    } else {
+      roomState.value = null
+      ElMessage.error(res.data.msg || '心跳请求失败')
+    }
+  } catch (err: any) {
+    roomState.value = null
+    ElMessage.error(err.response?.data?.msg || '网络错误，获取状态失败')
+  }
+}
+
+// 将后端字段映射成 LocalRoom 传给 RoomControl
+const apiRoom = computed<RoomDetail>(() => {
+  const s = roomState.value!
+  return {
+    roomId: roomId,
+    guest: '', // 这里可以根据需要填充客人姓名
+    currentTemp: s.current_temp,
+    targetTemp: s.target_temp,
+    currentSpeed: s.current_speed,
+    targetSpeed: s.target_speed,
+    electricalUsage: s.electrical_usage,
+    cost: s.fee,
+    status: s.status === 1, // 1=开机 0=关机
+    roomStatus: 1 // 假设房间状态为占用
+  }
+})
+
+// 挂载时立即心跳一次，且每 30s 刷新
+onMounted(() => {
+  fetchStatus()
+  timer = setInterval(fetchStatus, 30_000)
+})
+onBeforeUnmount(() => {
+  clearInterval(timer)
+})
+
+// “去入住” 按钮
 function goToCheckIn() {
-  router.push({ name: 'CheckIn' });
+  router.push({ name: 'CheckIn' })
 }
 </script>
 
@@ -61,7 +121,7 @@ function goToCheckIn() {
   width: 100%;
   max-width: 600px;
   border-radius: 12px;
-  background-color: #ffffff;
+  background-color: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   animation: fadeIn 0.4s ease-out;
   padding: 24px;
@@ -91,7 +151,6 @@ function goToCheckIn() {
 }
 
 .room-control-wrapper {
-  /* 给 RoomControl 一点上下间距 */
   margin-top: 12px;
 }
 
@@ -120,6 +179,7 @@ function goToCheckIn() {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
