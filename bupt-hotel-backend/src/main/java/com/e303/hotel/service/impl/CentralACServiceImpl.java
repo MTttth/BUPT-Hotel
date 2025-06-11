@@ -86,8 +86,8 @@ public class CentralACServiceImpl implements CentralACService {
         room.setCurrentSpeed(Speed.STOP);
         roomService.updateById(room);
         // 启动模拟温度变化任务
-        acScheduler.releaseRoom(room.getRoomId());
         acServicer.backInitTempControlTask(room.getRoomId());
+        acScheduler.releaseRoom(room.getRoomId());
         return Result.success("空调已关闭");
     }
 

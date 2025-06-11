@@ -5,6 +5,7 @@ import com.e303.hotel.bean.Room;
 import com.e303.hotel.dto.RoomDTO;
 import com.e303.hotel.service.RoomService;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -18,7 +19,7 @@ public class AdminController {
     private RoomService roomService;
 
     @ResponseBody
-    @PostMapping(value = "/get_room_detail_list")
+    @GetMapping(value = "/get_room_detail_list")
     public Result getRoomDetailList(){
         return roomService.getAllRoomDetialList();
     }

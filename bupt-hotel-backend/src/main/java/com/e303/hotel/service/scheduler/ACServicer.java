@@ -1,5 +1,7 @@
 package com.e303.hotel.service.scheduler;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.e303.hotel.bean.Bill;
 import com.e303.hotel.bean.Room;
 import com.e303.hotel.bean.enums.Speed;
 import com.e303.hotel.service.BillService;
@@ -8,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -19,6 +22,8 @@ public class ACServicer {
     private RoomService roomService;
     @Resource
     BillService billService;
+    @Resource
+    private ServicePool servicePool;
     private Map<Integer, ScheduledFuture<?>> startTaskMap = new ConcurrentHashMap<>();
     private Map<Integer, ScheduledFuture<?>> backInitTaskTempMap = new ConcurrentHashMap<>();
     @Lazy
@@ -31,21 +36,34 @@ public class ACServicer {
      */
     public void startServiceControlTask(Integer roomId, int mode) {
         cancelOldTask(roomId);
+        Room tempRoom = roomService.getById(roomId);
+        if (tempRoom == null || tempRoom.getRoomStatus() == 0) return;
+        tempRoom.setCurrentSpeed(tempRoom.getTargetSpeed());
+        roomService.updateById(tempRoom);
         //生成账单（初始化）
         Integer billId = billService.initBill(roomId);
+        //float[] totalDegree = {0.0f};
+        RoomACRequest roomACRequest = servicePool.getActiveServices().get(roomId);
         ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(() -> {
             Room room = roomService.getById(roomId);
             if (room == null || room.getRoomStatus() == 0) return;
-
             float currentTemp = room.getCurrentTemp();
             float targetTemp = room.getTargetTemp();
+
             Speed speed = room.getCurrentSpeed();
-            float delta = switch (speed) {
+            float delta = switch (speed) {  //每次变化的温度
                 case HIGH -> 0.6f;
-                case MID -> 0.5f;
+                case MID  -> 0.5f;
                 case SLOW -> 0.4f;
                 case STOP -> 0f;
-                default -> 0f;
+                default   -> 0f;
+            };
+            float degreePer = switch (speed) {  //每次变化使用的度数
+                case HIGH -> 1.0f;
+                case MID  -> 0.5f;
+                case SLOW -> 0.33f;
+                case STOP -> 0f;
+                default   -> 0f;
             };
 
             if (delta == 0f) return;
@@ -62,6 +80,10 @@ public class ACServicer {
                     finished = true;
                 }
             }
+            roomACRequest.setTotalDegree(roomACRequest.getTotalDegree() + degreePer);
+            //totalDegree[0]+=degreePer;
+            room.setElectricalUsage(room.getElectricalUsage()+degreePer);
+            room.setFee(room.getFee()+degreePer*Room.feePerDegree);
             roomService.updateById(room);
             System.out.println("房间 " + roomId + " 温度已更新为：" + room.getCurrentTemp());
             if (finished) {
@@ -69,15 +91,16 @@ public class ACServicer {
                 room.setCurrentSpeed(Speed.STOP);
                 room.setStatus(0);
                 roomService.updateById(room);
-
+                //roomACRequest.setTotalDegree(totalDegree[0]);
                 //结束线程调度
                 ScheduledFuture<?> f = startTaskMap.get(roomId);
                 if (f != null) {
                     f.cancel(true);
                     startTaskMap.remove(roomId);
                 }
-                acScheduler.releaseRoom(roomId);
                 backInitTempControlTask(roomId);
+                acScheduler.releaseRoom(roomId);
+                //totalDegree[0]=0.0f;
             }
 
         }, 5, 5, TimeUnit.SECONDS);
@@ -89,6 +112,9 @@ public class ACServicer {
 
     public void backInitTempControlTask(Integer roomId) {
         cancelOldTask(roomId);
+        RoomACRequest roomACRequest = servicePool.getActiveServices().get(roomId);
+        float totalDegree = roomACRequest.getTotalDegree();
+        billService.finishBill(roomId, totalDegree*Room.feePerDegree);
         ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(() -> {
             Room room = roomService.getById(roomId);
             if (room == null) return;

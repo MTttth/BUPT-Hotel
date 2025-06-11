@@ -10,8 +10,11 @@ import org.springframework.stereotype.Service;
 public class ClientServiceImpl extends ServiceImpl<ClientMapper, Client> implements ClientService {
     @Override
     public void saveClient(String clientId) {
+        Client byId = this.getById(clientId);
+        if(byId != null) {
             Client client = new Client();
             client.setId(clientId);
             this.save(client);
+        }
     }
 }

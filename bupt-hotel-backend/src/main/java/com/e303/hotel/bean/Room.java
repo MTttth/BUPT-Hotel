@@ -28,7 +28,7 @@ public class Room {
     private float electricalUsage;
     private float fee;
     //private float initTemp = 25.0f;
-
+    public static float feePerDegree = 1.0f;
     public float getInitialTemp(){
         return 25.0f;
     }

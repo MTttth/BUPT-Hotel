@@ -44,11 +44,10 @@ public class ACScheduler {
         if (targetSpeed.getPriority() > minSpeedLongestService.getValue().getTargetSpeed().getPriority()) {//如果请求的风速大于服务的最低风速
             //找到最低风速同时服务时长最高的那个请求，把他从服务队列中去除，初始化等待时长，放到wait队列中。
             Integer minSpeedLongestServiceRoomId = minSpeedLongestService.getKey();
+            acServicer.backInitTempControlTask(minSpeedLongestServiceRoomId);//取消送风服务
             activeServices.remove(minSpeedLongestServiceRoomId);
             System.out.println("房间" + minSpeedLongestServiceRoomId + "被移出服务队列");
             this.stopRoomSpeed(minSpeedLongestServiceRoomId);
-            acServicer.backInitTempControlTask(minSpeedLongestServiceRoomId);//取消送风服务
-
             waitQueue.add(minSpeedLongestService.getValue(), 60);
             System.out.println("房间" + minSpeedLongestServiceRoomId + "被放入等待队列,需等待" + minSpeedLongestService.getValue().getWaitTime() + "秒");
 
@@ -61,12 +60,12 @@ public class ACScheduler {
             if (forceTry) {
                 // 抢占服务时长最长的那个（风速相等）
                 Integer minSpeedLongestServiceRoomId = minSpeedLongestService.getKey();
+                acServicer.backInitTempControlTask(minSpeedLongestServiceRoomId);//取消送风服务
                 RoomACRequest kicked = activeServices.remove(minSpeedLongestServiceRoomId);
                 waitQueue.add(kicked, 60);
                 System.out.println("房间" + minSpeedLongestServiceRoomId + "被移出服务队列");
+                
                 this.stopRoomSpeed(minSpeedLongestServiceRoomId);
-                acServicer.backInitTempControlTask(minSpeedLongestServiceRoomId);//取消送风服务
-
                 activeServices.put(request.getRoomId(), request);
                 System.out.println("房间" + request.getRoomId() + "被放入服务队列");
                 this.updateRoomSpeed(request);
@@ -132,7 +131,7 @@ public class ACScheduler {
             for (RoomACRequest request : servicePool.getActiveServices().values()) {
                 int time = request.getServiceTime();
                 request.setServiceTime(time + 1);
-                System.out.println("房间 " + request.getRoomId() + " 的服务时长为：" + (time + 1) + " 秒");
+                //System.out.println("房间 " + request.getRoomId() + " 的服务时长为：" + (time + 1) + " 秒");
             }
         }, 1, 1, TimeUnit.SECONDS);
     }

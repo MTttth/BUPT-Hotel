@@ -6,4 +6,5 @@ import com.e303.hotel.bean.Room;
 
 public interface BillService extends IService<Bill> {
     public Integer initBill(Integer roomId);
+    public void finishBill(Integer roomId,float fee);
 }
