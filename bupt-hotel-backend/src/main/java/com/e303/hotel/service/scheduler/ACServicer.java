@@ -35,7 +35,7 @@ public class ACServicer {
      * @param mode   :制热还是制冷，0表示制热，1表示制冷
      */
     public void startServiceControlTask(Integer roomId, int mode) {
-        cancelOldTask(roomId);
+        cancelOldStartTask(roomId);
         Room tempRoom = roomService.getById(roomId);
         if (tempRoom == null || tempRoom.getRoomStatus() == 0) return;
         tempRoom.setCurrentSpeed(tempRoom.getTargetSpeed());
@@ -85,21 +85,22 @@ public class ACServicer {
             room.setElectricalUsage(room.getElectricalUsage()+degreePer);
             room.setFee(room.getFee()+degreePer*Room.feePerDegree);
             roomService.updateById(room);
-            System.out.println("房间 " + roomId + " 温度已更新为：" + room.getCurrentTemp());
+            System.out.println("房间 " + roomId +",风速:"+room.getCurrentSpeed()+ " 温度已更新为：" + room.getCurrentTemp());
             if (finished) {
-                System.out.println("房间 " + roomId + " 达到目标温度，停止调节。");
+                System.out.println("房间 " + roomId +",风速:"+room.getCurrentSpeed()+ " 达到目标温度，停止调节。");
                 room.setCurrentSpeed(Speed.STOP);
                 room.setStatus(0);
                 roomService.updateById(room);
                 //roomACRequest.setTotalDegree(totalDegree[0]);
                 //结束线程调度
                 ScheduledFuture<?> f = startTaskMap.get(roomId);
-                if (f != null) {
-                    f.cancel(true);
-                    startTaskMap.remove(roomId);
-                }
                 backInitTempControlTask(roomId);
                 acScheduler.releaseRoom(roomId);
+                if (f != null) {
+                    startTaskMap.remove(roomId);
+                    f.cancel(true);
+                }
+
                 //totalDegree[0]=0.0f;
             }
 
@@ -111,7 +112,7 @@ public class ACServicer {
     }
 
     public void backInitTempControlTask(Integer roomId) {
-        cancelOldTask(roomId);
+        cancelOldBackInitTask(roomId);
         RoomACRequest roomACRequest = servicePool.getActiveServices().get(roomId);
         float totalDegree = roomACRequest.getTotalDegree();
         billService.finishBill(roomId, totalDegree*Room.feePerDegree);
@@ -141,9 +142,9 @@ public class ACServicer {
                 roomService.updateById(room);
                 //结束线程调度
                 ScheduledFuture<?> f = backInitTaskTempMap.get(roomId);
+                backInitTaskTempMap.remove(roomId);
                 if (f != null) {
                     f.cancel(true);
-                    backInitTaskTempMap.remove(roomId);
                 }
             }
             //}, 1, 1, TimeUnit.MINUTES);
@@ -152,20 +153,24 @@ public class ACServicer {
         backInitTaskTempMap.put(roomId, future);
     }
 
-    public void cancelOldTask(int roomId) {
+    public void cancelOldStartTask(int roomId) {
         // 如果已有任务，先取消旧的（避免一个房间多个任务）
         if (startTaskMap.containsKey(roomId)) {
             ScheduledFuture<?> oldTask = startTaskMap.get(roomId);
             oldTask.cancel(true);
             startTaskMap.remove(roomId);
-            System.out.println("房间" + roomId + "的送风任务被取消");
+            //System.out.println("房间" + roomId + "的送风任务被取消");
         }
+
+    }
+    public void cancelOldBackInitTask(int roomId) {
+
         //结束变化到初始化温度的任务
         if (backInitTaskTempMap.containsKey(roomId)) {
             ScheduledFuture<?> oldTask = backInitTaskTempMap.get(roomId);
             oldTask.cancel(true);
             backInitTaskTempMap.remove(roomId);
-            System.out.println("房间" + roomId + "的回到初始温度任务被取消");
+            //System.out.println("房间" + roomId + "的回到初始温度任务被取消");
 
         }
     }

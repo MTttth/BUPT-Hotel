@@ -116,6 +116,8 @@ public class CentralACServiceImpl implements CentralACService {
         } else if (room.getRoomStatus() == 0) {
             return Result.error("400", "房间未登记入住，请先登记入住");
         }
+        room.setTargetSpeed(targetSpeed);
+        roomService.updateById(room);
         RoomACRequest roomACRequest = new RoomACRequest(roomId, targetSpeed);
         this.sendRequest(roomACRequest);
         return Result.success("目标风速成功修改为:" + targetSpeed);

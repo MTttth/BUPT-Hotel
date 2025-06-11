@@ -33,7 +33,7 @@ public class ACScheduler {
         // 如果服务池未满
         if (activeServices.size() < ServicePool.MAX_SERVICE_ROOMS) {
             activeServices.put(request.getRoomId(), request);
-            System.out.println("房间" + request.getRoomId() + "被放入服务队列");
+            System.out.println("房间" + request.getRoomId() +",风速:"+request.getTargetSpeed()+" 被放入服务队列");
             int mode = acServicer.judgeMode(request.getRoomId());
             this.updateRoomSpeed(request);
             acServicer.startServiceControlTask(request.getRoomId(), mode);
@@ -46,13 +46,13 @@ public class ACScheduler {
             Integer minSpeedLongestServiceRoomId = minSpeedLongestService.getKey();
             acServicer.backInitTempControlTask(minSpeedLongestServiceRoomId);//取消送风服务
             activeServices.remove(minSpeedLongestServiceRoomId);
-            System.out.println("房间" + minSpeedLongestServiceRoomId + "被移出服务队列");
+            System.out.println("房间" + minSpeedLongestServiceRoomId +",风速:"+minSpeedLongestService.getValue().getTargetSpeed()+ "被移出服务队列");
             this.stopRoomSpeed(minSpeedLongestServiceRoomId);
             waitQueue.add(minSpeedLongestService.getValue(), 60);
-            System.out.println("房间" + minSpeedLongestServiceRoomId + "被放入等待队列,需等待" + minSpeedLongestService.getValue().getWaitTime() + "秒");
+            System.out.println("房间" + minSpeedLongestServiceRoomId  +",风速:"+minSpeedLongestService.getValue().getTargetSpeed()+ "被放入等待队列,需等待" + minSpeedLongestService.getValue().getWaitTime() + "秒");
 
             activeServices.put(request.getRoomId(), request);
-            System.out.println("房间" + request.getRoomId() + "被放入服务队列");
+            System.out.println("房间" + request.getRoomId() +",风速:"+request.getTargetSpeed()+ "被放入服务队列");
             this.updateRoomSpeed(request);
             acServicer.startServiceControlTask(request.getRoomId(), acServicer.judgeMode(request.getRoomId()));//开启送风服务
 
@@ -63,21 +63,22 @@ public class ACScheduler {
                 acServicer.backInitTempControlTask(minSpeedLongestServiceRoomId);//取消送风服务
                 RoomACRequest kicked = activeServices.remove(minSpeedLongestServiceRoomId);
                 waitQueue.add(kicked, 60);
-                System.out.println("房间" + minSpeedLongestServiceRoomId + "被移出服务队列");
-                
+                System.out.println("房间" + minSpeedLongestServiceRoomId +",风速:"+minSpeedLongestService.getValue().getTargetSpeed()+ "被移出服务队列");
+
                 this.stopRoomSpeed(minSpeedLongestServiceRoomId);
                 activeServices.put(request.getRoomId(), request);
-                System.out.println("房间" + request.getRoomId() + "被放入服务队列");
+                System.out.println("房间" + request.getRoomId() +",风速:"+request.getTargetSpeed()+ "被放入服务队列");
                 this.updateRoomSpeed(request);
                 acServicer.startServiceControlTask(request.getRoomId(), acServicer.judgeMode(request.getRoomId()));//开启送风服务
 
             } else {
                 waitQueue.add(request, 60);
-                System.out.println("房间" + request.getRoomId() + "被放入等待队列,需等待" + request.getWaitTime() + "秒");
+                System.out.println("房间" + request.getRoomId() +",风速:"+request.getTargetSpeed()+ "被放入等待队列,需等待" + request.getWaitTime() + "秒");
             }
         } else { //如果请求的风速小于最低风速
+            //request.setPriority(request.getPriority() + 1);
             waitQueue.add(request, 60);
-            System.out.println("房间" + request.getRoomId() + "被放入等待队列,需等待" + request.getWaitTime() + "秒");
+            System.out.println("房间" + request.getRoomId() +",风速:"+request.getTargetSpeed()+ "被放入等待队列,需等待" + request.getWaitTime() + "秒");
         }
 
     }
@@ -86,13 +87,15 @@ public class ACScheduler {
     public synchronized void releaseRoom(Integer roomId) {
         //服务队列
         Map<Integer, RoomACRequest> activeServices = servicePool.getActiveServices();
+        RoomACRequest roomACRequest = activeServices.get(roomId);
+        Speed targetSpeed = roomACRequest.getTargetSpeed();
         if (activeServices.remove(roomId) != null) {
-            System.out.println("房间 " + roomId + " 服务结束，释放服务资源");
+            System.out.println("房间 " + roomId +",风速:"+targetSpeed+ " 服务结束，释放服务资源");
             RoomACRequest next = waitQueue.poll();
             if (next != null) {
-                activeServices.put(next.getRoomId(), next);
+                //activeServices.put(next.getRoomId(), next);
                 handleRequest(next,false);
-                System.out.println("等待队列中的房间 " + next.getRoomId() + " 获得服务");
+                System.out.println("等待队列中的房间 " + next.getRoomId() +",风速:"+next.getTargetSpeed()+ " 获得服务");
             }
         }
     }
@@ -116,8 +119,8 @@ public class ACScheduler {
                 // 从等待队列中移除，转入服务队列
                 for (RoomACRequest promote : toPromote) {
                     waitQueue.remove(promote);
-                    //promote.setPriority(promote.getPriority() + 1);
-                    System.out.println("房间 " + promote.getRoomId() + " 倒计时结束，再次发送服务请求");
+                    promote.setPriority(promote.getPriority() + 1);
+                    System.out.println("房间 " + promote.getRoomId() +",风速:"+promote.getTargetSpeed()+ " 倒计时结束，再次发送服务请求");
                     handleRequest(promote, true); // 再次发送服务请求
                 }
                 toPromote.clear();
