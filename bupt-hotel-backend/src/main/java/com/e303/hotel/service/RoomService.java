@@ -9,7 +9,6 @@ import java.util.List;
 
 public interface RoomService extends IService<Room> {
 
-    public Result clientLogin(ClientLoginRequest clientLoginRequest);
     public Result getAllRoomDetialList();
-
+    public Result checkInRoom(CheckInRequest checkInRequest);
 }

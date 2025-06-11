@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Client {
     @TableId(value = "id", type = IdType.AUTO) // 👈 这行很关键！
-    private Integer id;
+    private String id;
     // 可扩展：用户名、联系方式等
 
     // Getters and setters...

@@ -7,6 +7,7 @@ import com.e303.hotel.dto.AdjustTempRequest;
 import com.e303.hotel.dto.AdjustWindRequest;
 import com.e303.hotel.dto.PowerOffRequest;
 import com.e303.hotel.dto.PowerOnRequest;
+import com.e303.hotel.service.BillService;
 import com.e303.hotel.service.CentralACService;
 import com.e303.hotel.service.RoomService;
 import com.e303.hotel.service.scheduler.*;
@@ -20,6 +21,8 @@ public class CentralACServiceImpl implements CentralACService {
     @Resource
     private RoomService roomService;
     @Resource
+    private BillService billService;
+    @Resource
     private ServicePool servicePool;
     @Resource
     private WaitQueue waitQueue;
@@ -27,6 +30,7 @@ public class CentralACServiceImpl implements CentralACService {
     private ACScheduler acScheduler;
     @Resource
     private ACServicer acServicer;
+
 
     @PostConstruct
     public void init() {
@@ -60,7 +64,7 @@ public class CentralACServiceImpl implements CentralACService {
         room.setStatus(1);  // 开启状态
         room.setTargetTemp(powerOnRequest.getTargetTemp());
         room.setTargetSpeed(powerOnRequest.getTargetSpeed());
-        room.setCurrentSpeed(Speed.STOP);  // 当前风速立即等于目标风速
+        room.setCurrentSpeed(Speed.STOP);  // 当前风速先置为stop
         roomService.updateById(room);
         RoomACRequest roomACRequest = new RoomACRequest(room.getRoomId(), room.getTargetSpeed());
         // 启动模拟温度变化任务

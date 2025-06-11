@@ -18,7 +18,7 @@ public class Bill {
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
     private Integer roomId;
-    private Integer clientId;
+    private String clientId;
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;

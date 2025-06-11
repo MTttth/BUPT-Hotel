@@ -14,4 +14,6 @@ import java.util.Map;
 public interface BillMapper extends BaseMapper<Bill> {
     @Select("SELECT room_id, SUM(TIMESTAMPDIFF(SECOND, start_time, end_time)) AS total_seconds, SUM(fee) AS total_fee FROM bill WHERE start_time >= #{startTime} AND end_time <= #{endTime} GROUP BY room_id")
     List<Map<String, Object>> getRoomReport(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
+
+
 }

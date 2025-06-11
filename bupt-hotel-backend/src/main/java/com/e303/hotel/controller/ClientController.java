@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 public class ClientController {
@@ -22,16 +24,18 @@ public class ClientController {
     @Resource
     private CentralACService centralACService;
 
-    @ResponseBody
-    @PostMapping(value = "/client_login")
-    public Result clientLogin(@RequestBody ClientLoginRequest clientLoginRequest) {
-        return roomService.clientLogin(clientLoginRequest);
-    }
-
 
     @ResponseBody
-    @PostMapping(value = "/power_on")
-    public Result powerOn(@RequestBody PowerOnRequest powerOnRequest) {
+    @PostMapping("/power_on")
+    public Result powerOn(@RequestBody PowerOnRequest powerOnRequest,HttpSession session) {
+
+        String clientId = (String)session.getAttribute("client_id");
+        if(clientId == null) {
+            return Result.error("400","您还没有入住呢？调啥空调我请问了？？");
+        }
+        // 设置到请求对象中
+        powerOnRequest.setClientId(clientId);
+        // 调用服务层
         return centralACService.powerOn(powerOnRequest);
     }
 

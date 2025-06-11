@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 
 public class PowerOnRequest {
+    private String clientId;
     private Integer roomId;
     private float targetTemp;
     private Speed targetSpeed;

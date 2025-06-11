@@ -1,14 +1,17 @@
 package com.e303.hotel.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.e303.hotel.bean.Client;
 import com.e303.hotel.bean.Result;
 import com.e303.hotel.bean.Room;
 import com.e303.hotel.bean.enums.Speed;
 import com.e303.hotel.dto.*;
 import com.e303.hotel.mapper.RoomMapper;
+import com.e303.hotel.service.ClientService;
 import com.e303.hotel.service.RoomService;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,28 +20,25 @@ import java.util.stream.Collectors;
 
 @Service
 public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements RoomService {
+    @Resource
+    private ClientService clientService;
 
 
 
     @Override
-    public Result clientLogin(ClientLoginRequest clientLoginRequest) {
-        Integer roomId = clientLoginRequest.getRoomId();
-        String password = clientLoginRequest.getPassword();
+    public Result checkInRoom(CheckInRequest checkInRequest) {
+        Integer roomId = checkInRequest.getRoomId();
+        String clientId = checkInRequest.getClientId();
         Room room = getById(roomId);
         if (room == null) {
             return Result.error("400", "房间不存在");
         }else if(room.getRoomStatus()==1){
             return Result.error("400","房间已入住");
         }
-        // 建议使用加密密码时的匹配方式
-        if (password != null && password.equals(room.getPassword())) {
-            //初始化room
-            room = initRoom(room);
-            Result success = Result.success();
-            success.setMsg("入住成功");
-            return success;
-        }
-        return Result.error("400", "密码错误，入住失败");
+        room.setClientId(clientId);
+        this.initRoom(room);
+        clientService.saveClient(clientId);
+        return Result.success("用户"+clientId+"入住成功,房间号为:"+roomId);
     }
 
     @Override
@@ -62,4 +62,6 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         updateById(room);
         return room;
     }
+
+
 }

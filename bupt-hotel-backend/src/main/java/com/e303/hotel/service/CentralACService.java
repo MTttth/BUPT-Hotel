@@ -14,4 +14,5 @@ public interface CentralACService {
     public Result adjustWind(AdjustWindRequest adjustWindRequest);
     public Result sendRequest(RoomACRequest roomACRequest);
     public Result releaseRoom(RoomACRequest roomACRequest);
+
 }

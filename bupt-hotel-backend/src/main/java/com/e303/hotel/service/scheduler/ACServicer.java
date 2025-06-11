@@ -2,6 +2,7 @@ package com.e303.hotel.service.scheduler;
 
 import com.e303.hotel.bean.Room;
 import com.e303.hotel.bean.enums.Speed;
+import com.e303.hotel.service.BillService;
 import com.e303.hotel.service.RoomService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,8 @@ public class ACServicer {
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10); //服务队列，同时最多处理 10 个房间
     @Resource
     private RoomService roomService;
+    @Resource
+    BillService billService;
     private Map<Integer, ScheduledFuture<?>> startTaskMap = new ConcurrentHashMap<>();
     private Map<Integer, ScheduledFuture<?>> backInitTaskTempMap = new ConcurrentHashMap<>();
     @Lazy
@@ -28,6 +31,8 @@ public class ACServicer {
      */
     public void startServiceControlTask(Integer roomId, int mode) {
         cancelOldTask(roomId);
+        //生成账单（初始化）
+        Integer billId = billService.initBill(roomId);
         ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(() -> {
             Room room = roomService.getById(roomId);
             if (room == null || room.getRoomStatus() == 0) return;

@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class ClientLoginRequest {
+    private String clientId;
     private Integer roomId;
     private String password;
 }
