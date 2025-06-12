@@ -52,7 +52,7 @@ const emptyRooms = computed(() => {
 
 async function fetchEmptyRooms() {
   try {
-    const res = await axios.get('/get_emptyroom');
+    const res = await axios.get('api/get_emptyroom');
     if (res.data.code === 200 && Array.isArray(res.data.data.empty_room_list)) {
       emptyRoomIds.value = res.data.data.empty_room_list;
     } else {
@@ -81,7 +81,7 @@ async function submit() {
     return;
   }
   try {
-    const res = await axios.post('/check_in', {
+    const res = await axios.post('api/check_in', {
       room_id: roomId.value,
     });
     if (res.data.code === 200) {

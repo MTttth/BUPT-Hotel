@@ -2,7 +2,7 @@
   <el-card shadow="hover" class="room-card">
     <template #header>
       <div class="header-container">
-        <span class="room-title">房间 #{{ room.roomId }}</span>
+        <span class="room-title">房间 #{{ room.id }}</span>
         <el-tag :type="room.roomStatus === 0 ? 'success' : 'info'" size="small">
           {{ room.roomStatus === 1 ? '已入住' : '空闲' }}
         </el-tag>
@@ -64,7 +64,7 @@ import type { RoomDetail, Wind } from '@/types/Room'
 // 接收父组件传入的 room 对象
 const props = defineProps<{ room: RoomDetail }>()
 const { room } = props
-
+console.log('RoomControl props:', room)
 // 本地状态
 const localTemp = ref(room.targetTemp)
 const minTemp = computed(() => (18))
@@ -81,14 +81,14 @@ watch(localTemp, v => {
   debounceTimer = setTimeout(async () => {
     try {
       if (room.status === false) {
-        await axios.post('/power_on', {
-          room_id: room.roomId,
+        await axios.post('api/power_on', {
+          room_id: room.id,
           target_temp: v,
           target_speed: room.currentSpeed
         })
         ElMessage.success('空调已开启')
       } else {
-        await axios.post('/adjust_temperature', { room_id: room.roomId, target_temp: v })
+        await axios.post('api/adjust_temperature', { room_id: room.id, target_temp: v })
         ElMessage.success('温度请求已发送')
       }
     } catch (e: any) {
@@ -103,14 +103,14 @@ async function setWind(speed: Wind) {
   if (room.roomStatus === 0) return
   try {
     if (room.status === false) {
-      await axios.post('/power_on', {
-        room_id: room.roomId,
+      await axios.post('api/power_on', {
+        room_id: room.id,
         target_temp: room.targetTemp,
         target_speed: speed
       })
       ElMessage.success('空调已开启')
     } else {
-      await axios.post('/adjust_wind', { room_id: room.roomId, target_speed: speed })
+      await axios.post('api/adjust_wind', { room_id: room.id, target_speed: speed })
       ElMessage.success('风速请求已发送')
     }
   } catch (e: any) {

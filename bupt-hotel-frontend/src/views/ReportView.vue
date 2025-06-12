@@ -61,7 +61,7 @@ async function fetchReport() {
 
 	const [start, end] = dateRange.value
 	try {
-		const res = await axios.get('/get_statistics', {
+		const res = await axios.get('api/get_statistics', {
 			params: {
 				start_time: start.toISOString().slice(0, 10),
 				end_time: end.toISOString().slice(0, 10)

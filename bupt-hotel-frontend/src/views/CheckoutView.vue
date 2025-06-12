@@ -76,7 +76,7 @@ const billDetails = ref<BillItem[]>([])
 /** 拉取已入住房间的简单列表 */
 async function fetchRoomDetails() {
   try {
-    const res = await axios.get('/get_room_detail_list')
+    const res = await axios.get('api/get_room_detail_list')
     if (res.data.code === 200 && Array.isArray(res.data.data.rooms)) {
       // 只保留 roomStatus===1 的入住房间
       roomDetails.value = res.data.data.rooms
@@ -113,7 +113,7 @@ function confirmCheckout(roomId: number) {
 /** 调用 /check_out 接口，展示明细 */
 async function doCheckout(roomId: number) {
   try {
-    const res = await axios.post('/check_out', { room_id: roomId })
+    const res = await axios.post('api/check_out', { room_id: roomId })
     if (res.data.code === 200 && res.data.data) {
       billTotal.value = res.data.data.bill
       billDetails.value = res.data.data.detailed_list
