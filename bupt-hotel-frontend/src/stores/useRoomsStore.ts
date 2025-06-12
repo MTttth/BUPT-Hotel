@@ -8,7 +8,7 @@ export const useRoomsStore = defineStore('rooms', () => {
 
   async function fetchRooms() {
     try {
-      const res = await axios.get('/get_room_detail_list')
+      const res = await axios.get('api/get_room_detail_list')
       if (res.data.code === 200 && Array.isArray(res.data.data.rooms)) {
         rooms.value = res.data.data.rooms.map((r: any) => ({
           id: r.room_id,

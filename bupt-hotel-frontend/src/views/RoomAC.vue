@@ -62,7 +62,7 @@ let timer: ReturnType<typeof setInterval>
 // 心跳接口：获取最新状态
 async function fetchStatus() {
   try {
-    const res = await axios.post('/status_heartbeat', { room_id: roomId })
+    const res = await axios.post('api/status_heartbeat', { room_id: roomId })
     if (res.data.code === 200 && res.data.data) {
       roomState.value = res.data.data
     } else {
@@ -79,7 +79,7 @@ async function fetchStatus() {
 const apiRoom = computed<RoomDetail>(() => {
   const s = roomState.value!
   return {
-    roomId: roomId,
+    id: roomId,
     guest: '', // 这里可以根据需要填充客人姓名
     currentTemp: s.current_temp,
     targetTemp: s.target_temp,

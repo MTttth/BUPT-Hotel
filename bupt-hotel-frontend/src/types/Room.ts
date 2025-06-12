@@ -7,7 +7,7 @@ export type Wind = 'slow' | 'mid' | 'high' | 'stop';
  */
 export interface RoomDetail {
   /** 房间号 */
-  roomId: number;
+  id: number;
   /** 客人姓名，空闲时为 null */
   guest: string | null;
   /** 当前温度 */
