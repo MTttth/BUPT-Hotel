@@ -121,7 +121,7 @@ let timer: ReturnType<typeof setInterval>;
 
 async function fetchRoomDetails() {
   try {
-    const res = await axios.get('/get_room_detail_list');
+    const res = await axios.get('api/get_room_detail_list');
     if (res.data.code === 200 && Array.isArray(res.data.data.rooms)) {
       rooms.value = res.data.data.rooms
         .filter((r: ApiRoom) => r.room_status === 1 || r.room_status === 0)

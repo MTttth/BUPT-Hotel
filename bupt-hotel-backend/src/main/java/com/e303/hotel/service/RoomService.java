@@ -11,4 +11,5 @@ public interface RoomService extends IService<Room> {
 
     public Result getAllRoomDetialList();
     public Result checkInRoom(CheckInRequest checkInRequest);
+    public Result checkOutRoom(CheckOutRequest checkOutRequest);
 }

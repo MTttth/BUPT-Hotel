@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.List;
 
 @Service
 public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements BillService {
@@ -34,7 +34,7 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
     }
 
     @Override
-    public void finishBill(Integer roomId,float fee) {
+    public void finishBill(Integer roomId, float fee) {
         Room overRoom = roomService.getById(roomId);
         String clientId = overRoom.getClientId();
         QueryWrapper<Bill> queryWrapper = new QueryWrapper<>();
@@ -48,5 +48,14 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
 
         bill.setFee(fee);
         this.updateById(bill);
+    }
+
+    @Override
+    public List<Bill> getBillsByRoomIdAndClientId(Integer roomId, String clientId) {
+        List<Bill> bills = this.lambdaQuery()
+                .eq(Bill::getClientId, clientId)
+                .eq(Bill::getRoomId, roomId)
+                .list();
+        return bills;
     }
 }

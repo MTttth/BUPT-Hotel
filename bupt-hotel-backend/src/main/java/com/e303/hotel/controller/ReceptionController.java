@@ -3,6 +3,7 @@ package com.e303.hotel.controller;
 import com.e303.hotel.bean.Result;
 import com.e303.hotel.bean.Room;
 import com.e303.hotel.dto.CheckInRequest;
+import com.e303.hotel.dto.CheckOutRequest;
 import com.e303.hotel.service.RoomService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,7 +37,13 @@ public class ReceptionController {
             session.removeAttribute("client_id");
         }
         return result;
+    }
 
+    @ResponseBody
+    @PostMapping(value = "/check_out")
+    public Result checkOut(@RequestBody CheckOutRequest checkOutRequest, HttpSession session) {
+        session.removeAttribute("client_id");
+        return roomService.checkOutRoom(checkOutRequest);
     }
 
 }
