@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
@@ -38,5 +39,12 @@ public class ReceptionController {
         return result;
 
     }
+
+    @ResponseBody
+    @GetMapping(value = "/get_emptyroom")
+    public Result getEmptyRoom() {
+        return roomService.getEmptyRoom();
+    }
+   
 
 }

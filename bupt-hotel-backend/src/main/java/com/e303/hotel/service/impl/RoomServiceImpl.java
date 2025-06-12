@@ -1,5 +1,6 @@
 package com.e303.hotel.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.e303.hotel.bean.Client;
 import com.e303.hotel.bean.Result;
@@ -61,6 +62,23 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         room.setCurrentSpeed(Speed.STOP);
         updateById(room);
         return room;
+    }
+
+    @Override
+    public Result getEmptyRoom() {
+        QueryWrapper<Room> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("room_status", 0);
+        List<Room> emptyRooms = this.list(queryWrapper);
+        if (emptyRooms.isEmpty()) {
+            return Result.error("400", "没有空闲房间");
+        }
+        List<Integer> emptyRoomIds = emptyRooms.stream().map(Room::getRoomId).collect(Collectors.toList());
+        String emptyRoomList = "[" + emptyRoomIds.stream().map(String::valueOf).collect(Collectors.joining(",")) + "]";
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("empty_room_list", emptyRoomList);
+        Result result = Result.success("获取成功");
+        result.setData(dataMap);
+        return result;
     }
 
 
