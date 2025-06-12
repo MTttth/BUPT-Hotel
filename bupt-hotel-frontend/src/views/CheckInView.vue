@@ -67,7 +67,7 @@ async function fetchEmptyRooms() {
 let timer: ReturnType<typeof setInterval>;
 onMounted(() => {
   fetchEmptyRooms();
-  timer = setInterval(fetchEmptyRooms, 30 * 1000); // 每 30s 刷新一次
+  timer = setInterval(fetchEmptyRooms, 1000); // 每 30s 刷新一次
 });
 
 // 在卸载时清理定时器

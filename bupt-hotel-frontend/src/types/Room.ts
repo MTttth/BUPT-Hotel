@@ -23,7 +23,7 @@ export interface RoomDetail {
   /** 累计费用（元） */
   cost: number;
   /** 空调开关状态，true=开，false=关 */
-  status: boolean;
+  status: number;
   /** 房间占用状态，1=占用，0=空闲 */
   roomStatus: number;
 }

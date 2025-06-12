@@ -30,7 +30,7 @@ export const useRoomsStore = defineStore('rooms', () => {
 
   onMounted(() => {
     fetchRooms()
-    setInterval(fetchRooms, 30_000)
+    setInterval(fetchRooms, 1_000)
   })
 
   return { rooms, fetchRooms }

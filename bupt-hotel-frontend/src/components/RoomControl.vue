@@ -1,11 +1,18 @@
+<!-- src/components/RoomControl.vue -->
 <template>
   <el-card shadow="hover" class="room-card">
+    <!-- 卡片头：房间号 + 开关按钮 -->
     <template #header>
       <div class="header-container">
-        <span class="room-title">房间 #{{ room.roomId }}</span>
-        <el-tag :type="room.roomStatus === 1 ? 'success' : 'info'" size="small">
-          {{ room.roomStatus === 1 ? '已入住' : '空闲' }}
-        </el-tag>
+        <div>
+          <span class="room-title">房间 #{{ room.id }}</span>
+          <el-tag :type="room.roomStatus === 1 ? 'success' : 'info'" size="small">
+            {{ room.roomStatus === 1 ? '已入住' : '空闲' }}
+          </el-tag>
+        </div>
+        <el-button size="mini" :type="room.status ? 'danger' : 'primary'" @click="togglePower">
+          {{ room.status ? '关闭空调' : '启动空调' }}
+        </el-button>
       </div>
     </template>
 
@@ -26,116 +33,130 @@
         </div>
         <div class="info-item">
           <i class="el-icon-temperature"></i>
-          <span class="info-text">当前温度：<b>{{ room.currentTemp.toFixed(1) }}°C</b></span>
+          <span class="info-text">
+            当前温度：<b>{{ room.currentTemp.toFixed(1) }}°C</b>
+          </span>
         </div>
         <div class="info-item">
           <i class="el-icon-c-scale-to-original"></i>
-          <span class="info-text">当前风速：<b>{{ room.currentSpeed }}</b></span>
+          <span class="info-text">
+            当前风速：<b>{{ room.currentSpeed }}</b>
+          </span>
         </div>
       </div>
 
-      <!-- 目标温度滑块 -->
+      <!-- 目标温度滑块（只有开机时可用） -->
       <div class="slider-row">
         <span class="slider-label">目标温度：</span>
-        <el-slider
-          v-model="localTemp"
-          :min="18"
-          :max="30"
-          :step="0.5"
-          show-tooltip="never"
-          class="temp-slider"
-        />
+        <el-slider v-model="localTemp" :min="18" :max="30" :step="0.5" show-tooltip="never" class="temp-slider"
+          :disabled="!room.status" />
         <span class="slider-value">{{ localTemp }}°C</span>
       </div>
 
-      <!-- 风速按钮组 -->
+      <!-- 风速按钮组（只有开机时可用） -->
       <div class="wind-row">
         <span class="wind-label">目标风速：</span>
         <el-button-group>
-          <el-button
-            :type="room.currentSpeed === 'slow' ? 'primary' : 'default'"
-            @click="setWind('slow')"
-          >低</el-button>
-          <el-button
-            :type="room.currentSpeed === 'mid' ? 'primary' : 'default'"
-            @click="setWind('mid')"
-          >中</el-button>
-          <el-button
-            :type="room.currentSpeed === 'high' ? 'primary' : 'default'"
-            @click="setWind('high')"
-          >高</el-button>
+          <el-button :type="room.currentSpeed === 'slow' ? 'primary' : 'default'" @click="setWind('slow')"
+            :disabled="!room.status">低</el-button>
+          <el-button :type="room.currentSpeed === 'mid' ? 'primary' : 'default'" @click="setWind('mid')"
+            :disabled="!room.status">中</el-button>
+          <el-button :type="room.currentSpeed === 'high' ? 'primary' : 'default'" @click="setWind('high')"
+            :disabled="!room.status">高</el-button>
         </el-button-group>
       </div>
 
       <!-- 累计费用 -->
       <div class="cost-row">
-        <el-statistic
-          :value="room.cost.toFixed(2)"
-          prefix="￥"
-          title="累计费用"
-          :precision="2"
-        />
+        <el-statistic :value="room.cost.toFixed(2)" prefix="￥" title="累计费用" :precision="2" />
       </div>
     </template>
   </el-card>
 </template>
 
-<script setup lang="ts">
-import { defineProps, ref, watch } from 'vue'
+<script lang="ts">
+import { defineComponent } from 'vue'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import type { RoomDetail, Wind } from '@/types/Room'
 
-// 接收父组件传来的 room 对象
-const props = defineProps<{ room: RoomDetail }>()
-const { room } = props
-
-// 本地防抖温度
-const localTemp = ref(room.targetTemp)
-
-let debounceTimer: ReturnType<typeof setTimeout> | null = null
-
-// watch 本地 localTemp，只在用户停止拖动后 1s 发请求
-watch(localTemp, v => {
-  if (room.roomStatus === 0) return
-
-  if (debounceTimer) clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(async () => {
-    try {
-      const url = room.status
-        ? '/api/adjust_temperature'
-        : '/api/power_on'
-      const payload = room.status
-        ? { room_id: room.roomId, target_temp: v }
-        : { room_id: room.roomId, target_temp: v, target_speed: room.currentSpeed }
-
-      await axios.post(url, payload)
-      ElMessage.success(room.status ? '温度请求已发送' : '空调已开启')
-    } catch (err: any) {
-      ElMessage.error(err.response?.data?.msg || '温度设置失败')
+export default defineComponent({
+  name: 'RoomControl',
+  props: {
+    room: {
+      type: Object as () => RoomDetail,
+      required: true
     }
-    debounceTimer = null
-  }, 1000)
-})
+  },
+  data() {
+    return {
+      // 本地防抖用的目标温度
+      localTemp: this.room.targetTemp as number,
+      debounceTimer: null as ReturnType<typeof setTimeout> | null
+    }
+  },
+  watch: {
+    // 父组件更新 room.targetTemp，要同步 localTemp
+    'room.targetTemp'(newVal: number) {
+      this.localTemp = newVal
+    },
+    // localTemp 变动时才发温度调整请求
+    localTemp(this: any, v: number) {
+      if (!this.room.status) return
+      if (this.debounceTimer) clearTimeout(this.debounceTimer)
+      this.debounceTimer = setTimeout(async () => {
+        try {
+          await axios.post('/api/adjust_temperature', {
+            room_id: this.room.id,
+            target_temp: v
+          })
+          ElMessage.success('温度请求已发送')
+        } catch (err: any) {
+          ElMessage.error(err.response?.data?.msg || '温度设置失败')
+        }
+        this.debounceTimer = null
+      }, 1000)
+    }
+  },
+  methods: {
+    // 风速设置
+    async setWind(speed: Wind) {
+      if (!this.room.status) return
+      try {
+        await axios.post('/api/adjust_wind', {
+          room_id: this.room.id,
+          target_speed: speed
+        })
+        ElMessage.success('风速请求已发送')
+      } catch (err: any) {
+        ElMessage.error(err.response?.data?.msg || '风速设置失败')
+      }
+    },
 
-// 点击切换目标风速
-async function setWind(speed: Wind) {
-  if (room.roomStatus === 0) return
-
-  try {
-    const url = room.status
-      ? '/api/adjust_wind'
-      : '/api/power_on'
-    const payload = room.status
-      ? { room_id: room.roomId, target_speed: speed }
-      : { room_id: room.roomId, target_temp: room.targetTemp, target_speed: speed }
-
-    await axios.post(url, payload)
-    ElMessage.success(room.status ? '风速请求已发送' : '空调已开启')
-  } catch (err: any) {
-    ElMessage.error(err.response?.data?.msg || '风速设置失败')
+    // 开 / 关 空调
+    async togglePower() {
+      try {
+        if (this.room.status) {
+          // 当前是开机，发关机请求
+          await axios.post('/api/power_off', { room_id: this.room.id })
+          ElMessage.success('空调已关闭')
+          this.room.status = false
+        } else {
+          // 当前是关机，发开机请求
+          await axios.post('/api/power_on', {
+            room_id: this.room.id,
+            target_temp: this.room.targetTemp,
+            target_speed: this.room.currentSpeed
+          })
+          ElMessage.success('空调已开启')
+          this.room.status = true
+        }
+      } catch (err: any) {
+        ElMessage.error(err.response?.data?.msg || '切换开关失败')
+      }
+    }
   }
-}
+})
 </script>
 
 <style scoped>
