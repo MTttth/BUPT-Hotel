@@ -29,12 +29,12 @@ public class ClientController {
     @PostMapping("/power_on")
     public Result powerOn(@RequestBody PowerOnRequest powerOnRequest,HttpSession session) {
 
-        String clientId = (String)session.getAttribute("client_id");
-        if(clientId == null) {
-            return Result.error(400,"您还没有入住呢？调啥空调我请问了？？");
-        }
-        // 设置到请求对象中
-        powerOnRequest.setClientId(clientId);
+        //String clientId = (String)session.getAttribute("client_id");
+        //if(clientId == null) {
+        //    return Result.error(400,"您还没有入住呢？调啥空调我请问了？？");
+        //}
+        //// 设置到请求对象中
+        //powerOnRequest.setClientId(clientId);
         // 调用服务层
         return centralACService.powerOn(powerOnRequest);
     }
@@ -70,14 +70,6 @@ public class ClientController {
         success.setMsg("成功获取房间状态");
         success.setData(room);
         return success;
-    }
-    @ResponseBody
-    @PostMapping(value = "getAllRooms")
-    public void getAllRooms() {
-        List<Room> list = roomService.list();
-        for (Room room : list) {
-            System.out.println(room);
-        }
     }
 
 

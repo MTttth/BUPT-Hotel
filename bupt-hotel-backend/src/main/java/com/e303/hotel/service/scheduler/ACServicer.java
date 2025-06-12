@@ -1,7 +1,5 @@
 package com.e303.hotel.service.scheduler;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.e303.hotel.bean.Bill;
 import com.e303.hotel.bean.Room;
 import com.e303.hotel.bean.enums.Speed;
 import com.e303.hotel.service.BillService;
@@ -10,7 +8,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -35,7 +32,7 @@ public class ACServicer {
      * @param mode   :制热还是制冷，0表示制热，1表示制冷
      */
     public void startServiceControlTask(Integer roomId, int mode) {
-        cancelOldStartTask(roomId);
+        cancelOldTask(roomId);
         Room tempRoom = roomService.getById(roomId);
         if (tempRoom == null || tempRoom.getRoomStatus() == 0) return;
         tempRoom.setCurrentSpeed(tempRoom.getTargetSpeed());
@@ -53,17 +50,17 @@ public class ACServicer {
             Speed speed = room.getCurrentSpeed();
             float delta = switch (speed) {  //每次变化的温度
                 case HIGH -> 0.6f;
-                case MID  -> 0.5f;
+                case MID -> 0.5f;
                 case SLOW -> 0.4f;
                 case STOP -> 0f;
-                default   -> 0f;
+                default -> 0f;
             };
             float degreePer = switch (speed) {  //每次变化使用的度数
                 case HIGH -> 1.0f;
-                case MID  -> 0.5f;
+                case MID -> 0.5f;
                 case SLOW -> 0.33f;
                 case STOP -> 0f;
-                default   -> 0f;
+                default -> 0f;
             };
 
             if (delta == 0f) return;
@@ -82,12 +79,12 @@ public class ACServicer {
             }
             roomACRequest.setTotalDegree(roomACRequest.getTotalDegree() + degreePer);
             //totalDegree[0]+=degreePer;
-            room.setElectricalUsage(room.getElectricalUsage()+degreePer);
-            room.setFee(room.getFee()+degreePer*Room.feePerDegree);
+            room.setElectricalUsage(room.getElectricalUsage() + degreePer);
+            room.setFee(room.getFee() + degreePer * Room.feePerDegree);
             roomService.updateById(room);
-            System.out.println("房间 " + roomId +",风速:"+room.getCurrentSpeed()+ " 温度已更新为：" + room.getCurrentTemp());
+            System.out.println("房间 " + roomId + ",风速:" + room.getCurrentSpeed() + " 温度已更新为：" + room.getCurrentTemp());
             if (finished) {
-                System.out.println("房间 " + roomId +",风速:"+room.getCurrentSpeed()+ " 达到目标温度，停止调节。");
+                System.out.println("房间 " + roomId + ",风速:" + room.getCurrentSpeed() + " 达到目标温度，停止调节。");
                 room.setCurrentSpeed(Speed.STOP);
                 room.setStatus(0);
                 roomService.updateById(room);
@@ -104,7 +101,9 @@ public class ACServicer {
                 //totalDegree[0]=0.0f;
             }
 
-        }, 30, 30, TimeUnit.SECONDS);
+            //}, 30, 30, TimeUnit.SECONDS);
+        }, 1, 1, TimeUnit.SECONDS);
+
         //}, 1, 1, TimeUnit.MINUTES);
 
 
@@ -113,9 +112,14 @@ public class ACServicer {
 
     public void backInitTempControlTask(Integer roomId) {
         cancelOldBackInitTask(roomId);
+        Room tempRoom = roomService.getById(roomId);
+        if (tempRoom == null || tempRoom.getRoomStatus() == 0) return;
+        tempRoom.setCurrentSpeed(Speed.STOP);
+        roomService.updateById(tempRoom);
+
         RoomACRequest roomACRequest = servicePool.getActiveServices().get(roomId);
         float totalDegree = roomACRequest.getTotalDegree();
-        billService.finishBill(roomId, totalDegree*Room.feePerDegree);
+        billService.finishBill(roomId, totalDegree * Room.feePerDegree);
         ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(() -> {
             Room room = roomService.getById(roomId);
             if (room == null) return;
@@ -148,7 +152,8 @@ public class ACServicer {
                 }
             }
             //}, 1, 1, TimeUnit.MINUTES);
-        }, 30, 30, TimeUnit.SECONDS);
+            //}, 30, 30, TimeUnit.SECONDS);
+        }, 1, 1, TimeUnit.SECONDS);
 
         backInitTaskTempMap.put(roomId, future);
     }
@@ -163,6 +168,7 @@ public class ACServicer {
         }
 
     }
+
     public void cancelOldBackInitTask(int roomId) {
 
         //结束变化到初始化温度的任务
@@ -174,14 +180,31 @@ public class ACServicer {
 
         }
     }
+    public void cancelOldTask(int roomId) {
+        // 如果已有任务，先取消旧的（避免一个房间多个任务）
+        if (startTaskMap.containsKey(roomId)) {
+            ScheduledFuture<?> oldTask = startTaskMap.get(roomId);
+            oldTask.cancel(true);
+            startTaskMap.remove(roomId);
+            //System.out.println("房间" + roomId + "的送风任务被取消");
+        }
+        //结束变化到初始化温度的任务
+        if (backInitTaskTempMap.containsKey(roomId)) {
+            ScheduledFuture<?> oldTask = backInitTaskTempMap.get(roomId);
+            oldTask.cancel(true);
+            backInitTaskTempMap.remove(roomId);
+            //System.out.println("房间" + roomId + "的回到初始温度任务被取消");
 
+        }
+    }
     /**
      * 返回这个房间是要制热还是要制冷，0制热，1制冷
+     *
      * @param roomId
      * @return
      */
     public int judgeMode(int roomId) {
         Room room = roomService.getById(roomId);
-        return room.getCurrentTemp()<room.getTargetTemp() ? 0 : 1;
+        return room.getCurrentTemp() < room.getTargetTemp() ? 0 : 1;
     }
 }

@@ -67,7 +67,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     private String formatDuration(float hours) {
-        return String.format("%.5fh", hours);
+        return String.format("%.2fh", hours);
     }
 
     private double formatFee(double fee) {

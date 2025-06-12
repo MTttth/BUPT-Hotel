@@ -25,25 +25,25 @@ public class ReceptionController {
     @PostMapping(value = "/check_in")
     public Result checkIn(@RequestBody CheckInRequest checkInRequest, HttpSession session) {
         Integer roomId = checkInRequest.getRoomId();
-        // 尝试从 Session 获取 client_id
-        String clientId = (String) session.getAttribute("client_id");
-        // 如果没有，就生成一个新的 UUID，并存入 session
-        if (clientId == null) {
-            clientId = UUID.randomUUID().toString();
-            session.setAttribute("client_id", clientId);
-        }
+        //// 尝试从 Session 获取 client_id
+        //String clientId = (String) session.getAttribute("client_id");
+        //// 如果没有，就生成一个新的 UUID，并存入 session
+        //if (clientId == null) {
+        //    session.setAttribute("client_id", clientId);
+        //}
+        String clientId = UUID.randomUUID().toString();
         checkInRequest.setClientId(clientId);
         Result result = roomService.checkInRoom(checkInRequest);
-        if(result.getCode()==400){
-            session.removeAttribute("client_id");
-        }
+        //if(result.getCode()==400){
+        //    session.removeAttribute("client_id");
+        //}
         return result;
     }
 
     @ResponseBody
     @PostMapping(value = "/check_out")
     public Result checkOut(@RequestBody CheckOutRequest checkOutRequest, HttpSession session) {
-        session.removeAttribute("client_id");
+        //session.removeAttribute("client_id");
         return roomService.checkOutRoom(checkOutRequest);
     }
 

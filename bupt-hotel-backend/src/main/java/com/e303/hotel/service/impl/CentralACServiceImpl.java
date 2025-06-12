@@ -80,6 +80,8 @@ public class CentralACServiceImpl implements CentralACService {
             return Result.error(400, "房间不存在");
         } else if (room.getStatus() == 0) {
             return Result.error(400, "该房间空调已关闭");
+        } else if (room.getRoomStatus() == 0) {
+            return Result.error(400, "该房间未入住");
         }
         // 设置目标值和当前风速
         room.setStatus(0);
@@ -100,6 +102,8 @@ public class CentralACServiceImpl implements CentralACService {
             return Result.error(400, "房间不存在");
         } else if (room.getRoomStatus() == 0) {
             return Result.error(400, "房间未登记入住，请先登记入住");
+        } else if(room.getStatus() == 0) {
+            return Result.error(400,"房间空调未开启,请先开启空调");
         }
         room.setTargetTemp(targetTemp);
         roomService.updateById(room);
@@ -115,6 +119,8 @@ public class CentralACServiceImpl implements CentralACService {
             return Result.error(400, "房间不存在");
         } else if (room.getRoomStatus() == 0) {
             return Result.error(400, "房间未登记入住，请先登记入住");
+        } else if(room.getRoomStatus() == 0) {
+            return Result.error(400,"房间空调未开启，请先开启空调");
         }
         room.setTargetSpeed(targetSpeed);
         roomService.updateById(room);

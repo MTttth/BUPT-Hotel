@@ -64,8 +64,8 @@ public class ACScheduler {
                 RoomACRequest kicked = activeServices.remove(minSpeedLongestServiceRoomId);
                 waitQueue.add(kicked, 60);
                 System.out.println("房间" + minSpeedLongestServiceRoomId +",风速:"+minSpeedLongestService.getValue().getTargetSpeed()+ "被移出服务队列");
-
                 this.stopRoomSpeed(minSpeedLongestServiceRoomId);
+
                 activeServices.put(request.getRoomId(), request);
                 System.out.println("房间" + request.getRoomId() +",风速:"+request.getTargetSpeed()+ "被放入服务队列");
                 this.updateRoomSpeed(request);
