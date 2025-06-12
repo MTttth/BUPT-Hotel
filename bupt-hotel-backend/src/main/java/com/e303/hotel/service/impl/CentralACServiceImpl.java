@@ -54,11 +54,11 @@ public class CentralACServiceImpl implements CentralACService {
     public Result powerOn(PowerOnRequest powerOnRequest) {
         Room room = roomService.getById(powerOnRequest.getRoomId());
         if (room == null) {
-            return Result.error("400", "房间不存在");
+            return Result.error(400, "房间不存在");
         } else if (room.getStatus() != 0) {
-            return Result.error("400", "该房间空调已开启");
+            return Result.error(400, "该房间空调已开启");
         } else if (room.getRoomStatus() != 1) {
-            return Result.error("400", "该房间未登记入住，请先去前台登记入住该房间");
+            return Result.error(400, "该房间未登记入住，请先去前台登记入住该房间");
         }
         // 设置目标值和当前风速
         room.setStatus(1);  // 开启状态
@@ -77,9 +77,9 @@ public class CentralACServiceImpl implements CentralACService {
     public Result powerOff(PowerOffRequest powerOffRequest) {
         Room room = roomService.getById(powerOffRequest.getRoomId());
         if (room == null) {
-            return Result.error("400", "房间不存在");
+            return Result.error(400, "房间不存在");
         } else if (room.getStatus() == 0) {
-            return Result.error("400", "该房间空调已关闭");
+            return Result.error(400, "该房间空调已关闭");
         }
         // 设置目标值和当前风速
         room.setStatus(0);
@@ -97,9 +97,9 @@ public class CentralACServiceImpl implements CentralACService {
         float targetTemp = adjustTempRequest.getTargetTemp();
         Room room = roomService.getById(roomId);
         if (room == null) {
-            return Result.error("400", "房间不存在");
+            return Result.error(400, "房间不存在");
         } else if (room.getRoomStatus() == 0) {
-            return Result.error("400", "房间未登记入住，请先登记入住");
+            return Result.error(400, "房间未登记入住，请先登记入住");
         }
         room.setTargetTemp(targetTemp);
         roomService.updateById(room);
@@ -112,9 +112,9 @@ public class CentralACServiceImpl implements CentralACService {
         Speed targetSpeed = adjustWindRequest.getTargetSpeed();
         Room room = roomService.getById(roomId);
         if (room == null) {
-            return Result.error("400", "房间不存在");
+            return Result.error(400, "房间不存在");
         } else if (room.getRoomStatus() == 0) {
-            return Result.error("400", "房间未登记入住，请先登记入住");
+            return Result.error(400, "房间未登记入住，请先登记入住");
         }
         room.setTargetSpeed(targetSpeed);
         roomService.updateById(room);

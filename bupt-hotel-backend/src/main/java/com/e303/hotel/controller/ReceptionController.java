@@ -34,7 +34,7 @@ public class ReceptionController {
         }
         checkInRequest.setClientId(clientId);
         Result result = roomService.checkInRoom(checkInRequest);
-        if(result.getCode()=="400"){
+        if(result.getCode()==400){
             session.removeAttribute("client_id");
         }
         return result;

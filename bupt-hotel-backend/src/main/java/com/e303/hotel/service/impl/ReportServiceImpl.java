@@ -28,7 +28,7 @@ public class ReportServiceImpl implements ReportService {
 
         // 如果没有找到任何房间数据，返回错误信息
         if (reportList.isEmpty()) {
-            return Result.error("400", "在指定时间段内未找到任何房间使用记录");
+            return Result.error(400, "在指定时间段内未找到任何房间使用记录");
         }
 
         // 计算总使用时间和总费用
@@ -67,7 +67,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     private String formatDuration(float hours) {
-        return String.format("%.0fh", hours);
+        return String.format("%.5fh", hours);
     }
 
     private double formatFee(double fee) {

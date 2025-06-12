@@ -31,7 +31,7 @@ public class ClientController {
 
         String clientId = (String)session.getAttribute("client_id");
         if(clientId == null) {
-            return Result.error("400","您还没有入住呢？调啥空调我请问了？？");
+            return Result.error(400,"您还没有入住呢？调啥空调我请问了？？");
         }
         // 设置到请求对象中
         powerOnRequest.setClientId(clientId);
@@ -64,7 +64,7 @@ public class ClientController {
         System.out.println(roomId);
         Room room = roomService.getById(roomId);
         if (room == null) {
-            return Result.error("400", "房间不存在");
+            return Result.error(400, "房间不存在");
         }
         Result success = Result.success();
         success.setMsg("成功获取房间状态");

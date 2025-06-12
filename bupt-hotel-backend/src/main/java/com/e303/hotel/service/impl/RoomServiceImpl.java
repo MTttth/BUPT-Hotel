@@ -72,9 +72,9 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         String clientId = checkInRequest.getClientId();
         Room room = getById(roomId);
         if (room == null) {
-            return Result.error("400", "房间不存在");
+            return Result.error(400, "房间不存在");
         }else if(room.getRoomStatus()==1){
-            return Result.error("400","房间已入住");
+            return Result.error(400,"房间已入住");
         }
         room.setClientId(clientId);
         this.initRoom(room);
@@ -121,7 +121,7 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         queryWrapper.eq("room_status", 0);
         List<Room> emptyRooms = this.list(queryWrapper);
         if (emptyRooms.isEmpty()) {
-            return Result.error("400", "没有空闲房间");
+            return Result.error(400, "没有空闲房间");
         }
         List<Integer> emptyRoomIds = emptyRooms.stream().map(Room::getRoomId).collect(Collectors.toList());
         Map<String, Object> dataMap = new HashMap<>();
