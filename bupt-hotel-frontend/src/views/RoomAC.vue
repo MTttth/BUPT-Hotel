@@ -79,7 +79,7 @@ async function fetchStatus() {
 const apiRoom = computed<RoomDetail>(() => {
   const s = roomState.value!
   return {
-    roomId: roomId,
+    id: roomId,
     guest: '', // 这里可以根据需要填充客人姓名
     currentTemp: s.current_temp,
     targetTemp: s.target_temp,
