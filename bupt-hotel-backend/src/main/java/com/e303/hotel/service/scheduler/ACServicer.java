@@ -101,9 +101,7 @@ public class ACServicer {
                 //totalDegree[0]=0.0f;
             }
 
-            //}, 30, 30, TimeUnit.SECONDS);
         }, 1, 1, TimeUnit.SECONDS);
-
         //}, 1, 1, TimeUnit.MINUTES);
 
 
@@ -152,7 +150,6 @@ public class ACServicer {
                 }
             }
             //}, 1, 1, TimeUnit.MINUTES);
-            //}, 30, 30, TimeUnit.SECONDS);
         }, 1, 1, TimeUnit.SECONDS);
 
         backInitTaskTempMap.put(roomId, future);
