@@ -61,7 +61,7 @@ public class ClientController {
     @PostMapping(value = "/status_heartbeat")
     public Result statusHeartbeat(@RequestBody Room reqRoom) {
         Integer roomId = reqRoom.getRoomId();
-        System.out.println(roomId);
+        //System.out.println(roomId);
         Room room = roomService.getById(roomId);
         if (room == null) {
             return Result.error(400, "房间不存在");

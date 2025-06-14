@@ -64,7 +64,7 @@ public class CentralACServiceImpl implements CentralACService {
         room.setStatus(1);  // 开启状态
         room.setTargetTemp(powerOnRequest.getTargetTemp());
         room.setTargetSpeed(powerOnRequest.getTargetSpeed());
-        room.setCurrentSpeed(Speed.STOP);  // 当前风速先置为stop
+        room.setCurrentSpeed(Speed.stop);  // 当前风速先置为stop
         roomService.updateById(room);
         RoomACRequest roomACRequest = new RoomACRequest(room.getRoomId(), room.getTargetSpeed());
         // 启动模拟温度变化任务
@@ -84,12 +84,13 @@ public class CentralACServiceImpl implements CentralACService {
             return Result.error(400, "该房间未入住");
         }
         // 设置目标值和当前风速
+        room.setCurrentSpeed(Speed.stop);
         room.setStatus(0);
-        room.setCurrentSpeed(Speed.STOP);
         roomService.updateById(room);
         // 启动模拟温度变化任务
         acServicer.backInitTempControlTask(room.getRoomId());
         acScheduler.releaseRoom(room.getRoomId());
+        ACScheduler.allServices.remove(room.getRoomId());
         return Result.success("空调已关闭");
     }
 
@@ -122,6 +123,9 @@ public class CentralACServiceImpl implements CentralACService {
         } else if(room.getRoomStatus() == 0) {
             return Result.error(400,"房间空调未开启，请先开启空调");
         }
+        float totalDegree = ACScheduler.allServices.get(roomId).getTotalDegree();
+        billService.finishBill(roomId, totalDegree*Room.feePerDegree);
+        ACScheduler.allServices.get(roomId).setTotalDegree(0);
         room.setTargetSpeed(targetSpeed);
         roomService.updateById(room);
         RoomACRequest roomACRequest = new RoomACRequest(roomId, targetSpeed);

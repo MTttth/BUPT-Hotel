@@ -10,8 +10,10 @@ import com.e303.hotel.bean.enums.Speed;
 import com.e303.hotel.dto.*;
 import com.e303.hotel.mapper.RoomMapper;
 import com.e303.hotel.service.BillService;
+import com.e303.hotel.service.CentralACService;
 import com.e303.hotel.service.ClientService;
 import com.e303.hotel.service.RoomService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +33,9 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
     @Lazy
     @Resource
     private BillService billService;
+    @Lazy
+    @Resource
+    private CentralACService centralACService;
 
     @Override
     public Result checkOutRoom(CheckOutRequest checkOutRequest) {
@@ -44,10 +49,16 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         //private float fee;
         Integer roomId = checkOutRequest.getRoomId();
         Room room = this.getById(roomId);
+        if(room.getStatus()==1){
+            PowerOffRequest powerOffRequest = new PowerOffRequest();
+            powerOffRequest.setRoomId(roomId);
+            centralACService.powerOff(powerOffRequest);
+        }
         String clientId = room.getClientId();
         float fee = room.getFee();
         List<Bill> bills = billService.getBillsByRoomIdAndClientId(roomId, clientId);
         List<Map<String, Object>> detailedList = bills.stream()
+                .filter(bill -> bill.getFee() != 0) //过滤掉 fee 为 0 的 bill
                 .map(bill -> {
                     Map<String, Object> item = new HashMap<>();
                     item.put("start_time", bill.getStartTime());
@@ -64,6 +75,10 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         Result success = Result.success("退房成功!");
         success.setData(data);
         return success;
+
+
+
+
     }
 
     @Override
@@ -98,15 +113,15 @@ public class RoomServiceImpl extends ServiceImpl<RoomMapper, Room> implements Ro
         room.setRoomStatus(1);
         room.setElectricalUsage(0);
         room.setFee(0);
-        room.setTargetSpeed(Speed.STOP);
-        room.setCurrentSpeed(Speed.STOP);
+        room.setTargetSpeed(Speed.stop);
+        room.setCurrentSpeed(Speed.stop);
         updateById(room);
         return room;
     }
     public void overRoom(Integer roomId) {
         Room room = this.getById(roomId);
-        room.setCurrentSpeed(Speed.STOP);
-        room.setTargetSpeed(Speed.STOP);
+        room.setCurrentSpeed(Speed.stop);
+        room.setTargetSpeed(Speed.stop);
         room.setElectricalUsage(0);
         room.setClientId("free");
         room.setFee(0.0f);

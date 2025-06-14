@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 
 public enum Speed {
-    HIGH("high", 3), MID("mid", 2), SLOW("slow", 1), STOP("stop", 0);
+    high("high", 3), mid("mid", 2), slow("slow", 1), stop("stop", 0);
 
     @EnumValue // 告诉 MyBatis-Plus：这个字段要映射数据库
     private final String dbValue;
@@ -29,7 +29,7 @@ public enum Speed {
         for (Speed s : values()) {
             if (s.dbValue.equalsIgnoreCase(value)) return s;
         }
-        return STOP;
+        return stop;
     }
 }
 
