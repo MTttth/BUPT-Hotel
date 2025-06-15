@@ -43,10 +43,9 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill> implements Bi
                 .orderByDesc("start_time")
                 .last("LIMIT 1");
         Bill bill = this.getOne(queryWrapper);
-        if(bill!=null) {
+        if(bill!=null&&bill.getEndTime()==null) {
             bill.setEndTime(LocalDateTime.now());
             //bill.setEndTime(new Date());
-
             bill.setFee(fee);
             this.updateById(bill);
         }

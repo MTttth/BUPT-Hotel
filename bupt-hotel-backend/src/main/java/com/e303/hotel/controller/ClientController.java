@@ -27,7 +27,7 @@ public class ClientController {
 
     @ResponseBody
     @PostMapping("/power_on")
-    public Result powerOn(@RequestBody PowerOnRequest powerOnRequest,HttpSession session) {
+    public Result powerOn(@RequestBody PowerOnRequest powerOnRequest) {
 
         //String clientId = (String)session.getAttribute("client_id");
         //if(clientId == null) {

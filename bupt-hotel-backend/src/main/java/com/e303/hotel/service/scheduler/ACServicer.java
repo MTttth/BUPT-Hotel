@@ -29,6 +29,7 @@ public class ACServicer {
     private static int flashTime = 10;
 
     /**
+     * 开启空调服务
      * @param roomId
      * @param mode   :制热还是制冷，0表示制热，1表示制冷
      */
@@ -80,10 +81,10 @@ public class ACServicer {
                     finished = true;
                 }
             }
-            roomACRequest.setTotalDegree(roomACRequest.getTotalDegree() + degreePer);
-            //totalDegree[0]+=degreePer;
-            room.setElectricalUsage(room.getElectricalUsage() + degreePer);
-            room.setFee(room.getFee() + degreePer * Room.feePerDegree);
+            roomACRequest.setTotalDegree(roomACRequest.getTotalDegree() + degreePer*(ACServicer.flashTime/60f));
+            //totalDegree[0]+=degreePer*(ACServicer.flashTime/60f;
+            room.setElectricalUsage(room.getElectricalUsage() + degreePer*(ACServicer.flashTime/60f));
+            room.setFee(room.getFee() + degreePer*(ACServicer.flashTime/60f) * Room.feePerDegree);
             roomService.updateById(room);
             System.out.println("房间 " + roomId + ",风速:" + room.getCurrentSpeed() + " 温度已更新为：" + room.getCurrentTemp());
             if (finished) {
